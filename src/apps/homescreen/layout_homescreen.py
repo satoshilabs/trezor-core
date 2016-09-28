@@ -21,3 +21,5 @@ async def animate_logo():
 @unimport
 async def layout_homescreen():
     await loop.Wait([swipe_to_rotate(), animate_logo()])
+
+default_view = layout_homescreen
