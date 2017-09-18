@@ -55,7 +55,7 @@ int sdcard_init(void) {
     GPIO_InitStructure.Mode = GPIO_MODE_INPUT;
     GPIO_InitStructure.Pull = GPIO_PULLUP;
     GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStructure.Pin = GPIO_PIN_13;
+    GPIO_InitStructure.Pin = GPIO_PIN_7;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStructure);
 
     return 0;
@@ -78,7 +78,7 @@ void HAL_SD_MspDeInit(SD_HandleTypeDef *hsd) {
 }
 
 bool sdcard_is_present(void) {
-    return GPIO_PIN_RESET == HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13);
+    return GPIO_PIN_RESET == HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_7);
 }
 
 bool sdcard_power_on(void) {
