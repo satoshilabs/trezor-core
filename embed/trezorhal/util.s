@@ -16,6 +16,27 @@ memset_reg:
   bne .L_loop_begin
   bx lr
 
+  .global memset_reg_wrap
+  .type memset_reg_wrap, STT_FUNC
+memset_reg_wrap:
+  // call with the following (note that the arguments are not validated prior to use):
+  // r0 - address of first word in the range to write (inclusive)
+  // r1 - address of first word following the address in r0 to NOT write (exclusive)
+  // r2 - word value to be written
+  // r3 - offset within the range to be the first word written
+  sub r1, r1, r0     // set r1 to the size of the memory range being written
+  sub r1, 1          // convert r1 into a power of 2 mod mask for the range
+  and r3, r3, r1     // make sure r3 is in range
+  bic r3, 0x3        // make sure r3 is word aligned
+  mov r12, r3        // save beginning offset into r12 for later comparison
+  .L_loop_begin_1:
+    str r2, [r0, r3] // store the word in r2 to the address in r0, offset by r3
+    add r3, 0x4      // increment to the next word
+    and r3, r3, r1   // wrap around, if necessary
+    cmp r3, r12      // if we're back to where we started, then we're done
+  bne .L_loop_begin_1
+  bx lr
+
   .global jump_to
   .type jump_to, STT_FUNC
 jump_to:
