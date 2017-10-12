@@ -18,17 +18,24 @@ reset_handler:
   bl rng_read
   mov r4, r0            // save TRNG output in r4
 
+  // r0 - value returned from previous call
+  ldr r1, =1            // r1 - whether to compare the previous value
+  bl rng_read
+  mov r5, r0            // save TRNG output in r5
+
   // wipe memory to remove any possible vestiges of sensitive data
   // use unpredictable value as a defense against side-channels
   ldr r0, =ccmram_start // r0 - point to beginning of CCMRAM
   ldr r1, =ccmram_end   // r1 - point to byte after the end of CCMRAM
   mov r2, r4            // r2 - the word-sized value to be written
-  bl memset_reg
+  mov r3, r5            // r3 - random offset within the range to start at
+  bl memset_reg_wrap
 
   ldr r0, =sram_start   // r0 - point to beginning of SRAM
   ldr r1, =sram_end     // r1 - point to byte after the end of SRAM
   mov r2, r4            // r2 - the word-sized value to be written
-  bl memset_reg
+  mov r3, r5            // r3 - random offset within the range to start at
+  bl memset_reg_wrap
 
   // setup environment for subsequent stage of code
   ldr r0, =ccmram_start // r0 - point to beginning of CCMRAM
