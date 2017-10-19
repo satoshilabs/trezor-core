@@ -29,13 +29,8 @@ static bool compute_pubkey(uint8_t sig_m, uint8_t sig_n, const uint8_t * const *
     return 0 == ed25519_cosi_combine_publickeys(res, keys, sig_m);
 }
 
-bool image_parse_header(const uint8_t *data, uint32_t magic, uint32_t maxsize, image_header *hdr)
+bool image_parse_header(const uint8_t * const data, const uint32_t magic, const uint32_t maxsize, image_header * const hdr)
 {
-    if (!hdr) {
-        image_header h;
-        hdr = &h;
-    }
-
     memcpy(&hdr->magic, data, 4);
     if (hdr->magic != magic) return false;
 

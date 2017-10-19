@@ -34,7 +34,7 @@ typedef struct {
     uint8_t sig[64];
 } vendor_header;
 
-bool image_parse_header(const uint8_t *data, uint32_t magic, uint32_t maxsize, image_header *hdr);
+bool image_parse_header(const uint8_t * const data, const uint32_t magic, const uint32_t maxsize, image_header * const hdr);
 
 bool image_check_signature(const uint8_t *data, const image_header *hdr, uint8_t key_m, uint8_t key_n, const uint8_t * const *keys);
 
