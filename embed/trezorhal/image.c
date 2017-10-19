@@ -81,18 +81,14 @@ bool image_check_signature(const uint8_t *data, const image_header *hdr, uint8_t
 
 bool vendor_parse_header(const uint8_t *data, vendor_header *vhdr)
 {
-    if (!vhdr) {
-        vendor_header h;
-        vhdr = &h;
-    }
-
     memcpy(&vhdr->magic, data, 4);
     if (vhdr->magic != 0x565A5254) return false; // TRZV
 
     memcpy(&vhdr->hdrlen, data + 4, 4);
+    // todo: sanity check hdr->hdrlen as it is used as a src to memcpy below
 
     memcpy(&vhdr->expiry, data + 8, 4);
-    if (vhdr->expiry != 0) return false;
+    if (vhdr->expiry != 0) return false; // todo: then what is the point of having this field?
 
     memcpy(&vhdr->version, data + 12, 2);
 
