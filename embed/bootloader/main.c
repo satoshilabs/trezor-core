@@ -266,14 +266,14 @@ int main(void)
         hal_delay(1);
     }
 
+    vendor_header vhdr;
+
     // start the bootloader if user touched the screen or no firmware installed
-    if (touched || !vendor_parse_header((const uint8_t *)FIRMWARE_START, NULL)) {
+    if (touched || !vendor_parse_header((const uint8_t *)FIRMWARE_START, &vhdr)) {
         if (!bootloader_loop()) {
             shutdown();
         }
     }
-
-    vendor_header vhdr;
 
     ensure(
         vendor_parse_header((const uint8_t *)FIRMWARE_START, &vhdr),

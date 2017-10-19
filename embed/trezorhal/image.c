@@ -76,17 +76,13 @@ bool image_check_signature(const uint8_t *data, const image_header *hdr, uint8_t
     return 0 == ed25519_sign_open(hash, BLAKE2S_DIGEST_LENGTH, pub, *(const ed25519_signature *)hdr->sig);
 }
 
-bool vendor_parse_header(const uint8_t *data, vendor_header *vhdr)
+bool vendor_parse_header(const uint8_t * const data, vendor_header * const vhdr)
 {
-    if (!vhdr) {
-        vendor_header h;
-        vhdr = &h;
-    }
-
     memcpy(&vhdr->magic, data, 4);
     if (vhdr->magic != 0x565A5254) return false; // TRZV
 
     memcpy(&vhdr->hdrlen, data + 4, 4);
+    // TODO: sanity check hdr->hdrlen as it is used as a src to memcpy below
 
     memcpy(&vhdr->expiry, data + 8, 4);
     if (vhdr->expiry != 0) return false;

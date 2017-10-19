@@ -38,7 +38,7 @@ bool image_parse_header(const uint8_t * const data, const uint32_t magic, const 
 
 bool image_check_signature(const uint8_t *data, const image_header *hdr, uint8_t key_m, uint8_t key_n, const uint8_t * const *keys);
 
-bool vendor_parse_header(const uint8_t *data, vendor_header *vhdr);
+bool vendor_parse_header(const uint8_t * const data, vendor_header * const vhdr);
 
 bool vendor_check_signature(const uint8_t *data, const vendor_header *vhdr, uint8_t key_m, uint8_t key_n, const uint8_t * const *keys);
 
