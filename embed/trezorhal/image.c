@@ -38,11 +38,13 @@ bool image_parse_header(const uint8_t * const data, const uint32_t magic, const 
     if (hdr->hdrlen != HEADER_SIZE) return false;
 
     memcpy(&hdr->expiry, data + 8, 4);
+    // TODO: expiry mechanism needs to be ironed out before production or those
+    // devices won't accept expiring bootloaders (due to boardloader write protection).
     if (hdr->expiry != 0) return false;
 
     memcpy(&hdr->codelen, data + 12, 4);
-    if (hdr->hdrlen + hdr->codelen < 4 * 1024) return false;
-    if (hdr->hdrlen + hdr->codelen > maxsize) return false;
+    if (hdr->codelen > (maxsize - hdr->hdrlen)) return false;
+    if ((hdr->hdrlen + hdr->codelen) < 4 * 1024) return false;
     if ((hdr->hdrlen + hdr->codelen) % 512 != 0) return false;
 
     memcpy(&hdr->version, data + 16, 4);

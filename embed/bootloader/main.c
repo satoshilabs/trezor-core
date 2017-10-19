@@ -17,8 +17,8 @@
 #include "messages.h"
 #include "style.h"
 
-#define IMAGE_MAGIC   0x465A5254 // TRZF
-#define IMAGE_MAXSIZE (7 * 128 * 1024)
+#define FIRMWARE_IMAGE_MAGIC   0x465A5254 // TRZF
+#define FIRMWARE_IMAGE_MAXSIZE (6 * 128 * 1024)
 
 void display_fade(int start, int end, int delay)
 {
@@ -286,7 +286,7 @@ int main(void)
     image_header hdr;
 
     ensure(
-        image_parse_header((const uint8_t *)(FIRMWARE_START + vhdr.hdrlen), IMAGE_MAGIC, IMAGE_MAXSIZE, &hdr),
+        image_parse_header((const uint8_t *)(FIRMWARE_START + vhdr.hdrlen), FIRMWARE_IMAGE_MAGIC, FIRMWARE_IMAGE_MAXSIZE, &hdr),
         "invalid firmware header");
 
     ensure(
