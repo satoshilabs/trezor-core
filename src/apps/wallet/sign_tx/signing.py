@@ -137,7 +137,7 @@ def sanitize_tx_binoutput(tx: TransactionType) -> TxOutputBinType:
 # Transaction signing
 # ===
 
-async def check_tx_fee(tx: SignTx, root):
+async def check_tx_fee(tx: SignTx, root, segwit=False):
 
     coin = coins.by_name(tx.coin_name)
 
@@ -158,8 +158,11 @@ async def check_tx_fee(tx: SignTx, root):
         # STAGE_REQUEST_1_INPUT
         txi = await request_tx_input(tx_req, i)
         write_tx_input_check(h_first, txi)
-        total_in += await get_prevtx_output_value(
-            tx_req, txi.prev_hash, txi.prev_index)
+        if segwit:
+            total_in += txi.amount
+        else:
+            total_in += await get_prevtx_output_value(
+                tx_req, txi.prev_hash, txi.prev_index)
 
     for o in range(tx.outputs_count):
         # STAGE_REQUEST_3_OUTPUT
