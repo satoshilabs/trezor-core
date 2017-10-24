@@ -17,7 +17,7 @@ from trezor.messages import OutputScriptType, InputScriptType, FailureType
 
 from apps.common import address_type
 from apps.common import coins
-
+from common import *
 
 # Machine instructions
 # ===
@@ -355,7 +355,7 @@ def estimate_tx_size(inputs, outputs):
 
 
 def output_derive_script(o: TxOutputType, coin: CoinType, root) -> bytes:
-    if o.script_type == OutputScriptType.PAYTOADDRESS:
+    if o.script_type in (OutputScriptType.PAYTOADDRESS, OutputScriptType.PAYTOWITNESS):
         ra = output_paytoaddress_extract_raw_address(o, coin, root)
         ra = address_type.strip(coin.address_type, ra)
         return script_paytoaddress_new(ra)
