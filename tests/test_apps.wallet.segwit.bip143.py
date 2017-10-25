@@ -2,7 +2,7 @@ from common import *
 
 from trezor.messages.TxAck import TxAck
 
-from apps.wallet.sign_tx.bip143 import *
+from apps.wallet.sign_tx.segwit_bip143 import *
 from trezor.crypto import bip32, bip39
 
 
