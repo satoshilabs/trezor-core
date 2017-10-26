@@ -1,8 +1,11 @@
 from common import *
 
-from trezor.messages.TxAck import TxAck
-
-from apps.wallet.sign_tx.segwit_bip143 import *
+from apps.wallet.sign_tx.signing import *
+from apps.common import coins
+from trezor.messages.SignTx import SignTx
+from trezor.messages.TxInputType import TxInputType
+from trezor.messages.TxOutputType import TxOutputType
+from trezor.messages import OutputScriptType
 from trezor.crypto import bip32, bip39
 
 
@@ -25,57 +28,53 @@ class TestSegwitBip143(unittest.TestCase):
                         script_type=OutputScriptType.PAYTOWITNESS,
                         address_n=None)
 
-    def test_bip143_inputs(self):
-        func = bip143_process_inputs(self.tx)
+    def test_bip143_prevouts(self):
 
-        func.send(None)
-        try:
-            func.send(TxAck(tx=TransactionType(inputs=[self.inp1])))
-        except StopIteration as e:
-            self.assertEqual(hexlify(e.value[0]), b'db6b1b20aa0fd7b23880be2ecbd4a98130974cf4748fb66092ac4d3ceb1a547701000000')
-            self.assertEqual(hexlify(e.value[1]), b'b0287b4a252ac05af83d2dcef00ba313af78a3e9c329afa216eb3aa2a7b4613a')
-            self.assertEqual(hexlify(e.value[2]), b'18606b350cd8bf565266bc352f0caddcf01e8fa789dd8a15386327cf8cabe198')
-        else:
-            raise AssertionError
+        bip143 = Bip143()
+        bip143.add_prevouts(self.inp1)
+        self.assertEqual(hexlify(bip143.get_prevouts_hash()), b'b0287b4a252ac05af83d2dcef00ba313af78a3e9c329afa216eb3aa2a7b4613a')
 
+    def test_bip143_sequence(self):
+
+        bip143 = Bip143()
+        bip143.add_sequence(self.inp1)
+        self.assertEqual(hexlify(bip143.get_sequence_hash()), b'18606b350cd8bf565266bc352f0caddcf01e8fa789dd8a15386327cf8cabe198')
 
     def test_bip143_outputs(self):
 
         seed = bip39.seed('alcohol woman abuse must during monitor noble actual mixed trade anger aisle', '')
         root = bip32.from_seed(seed, 'secp256k1')
         coin = coins.by_name(self.tx.coin_name)
-        func = bip143_outputs(self.tx, coin, root)
 
-        func.send(None)
-        func.send(TxAck(tx=TransactionType(outputs=[self.out1])))
-        try:
-            func.send(TxAck(tx=TransactionType(outputs=[self.out2])))
-        except StopIteration as e:
-            self.assertEqual(hexlify(e.value), b'de984f44532e2173ca0d64314fcefe6d30da6f8cf27bafa706da61df8a226c83')  # todo better?
-        else:
-            raise AssertionError
+        bip143 = Bip143()
 
+        for txo in [self.out1, self.out2]:
+            txo_bin = TxOutputBinType()
+            txo_bin.amount = txo.amount
+            txo_bin.script_pubkey = output_derive_script(txo, coin, root)
+            bip143.add_output(txo_bin)
+
+        self.assertEqual(hexlify(bip143.get_outputs_hash()),
+                         b'de984f44532e2173ca0d64314fcefe6d30da6f8cf27bafa706da61df8a226c83')
 
     def test_bip143_preimage(self):
 
         seed = bip39.seed('alcohol woman abuse must during monitor noble actual mixed trade anger aisle', '')
         root = bip32.from_seed(seed, 'secp256k1')
-        func = bip143_preimage(self.tx, root)
+        coin = coins.by_name(self.tx.coin_name)
 
-        func.send(None)
-        func.send(TxAck(tx=TransactionType(inputs=[self.inp1])))  # for bip143_process_inputs
-        func.send(TxAck(tx=TransactionType(inputs=[self.inp1])))  # for bip143_preimage main loop
-        func.send(TxAck(tx=TransactionType(outputs=[self.out1])))  # for bip143_outputs
-        try:
-            func.send(TxAck(tx=TransactionType(outputs=[self.out2])))
-        except StopIteration as e:
-            # this hash does not correspond to the BIP 143 testing data
-            # the pubKey can't be mocked and therefore the scriptCode is different
-            self.assertEqual(hexlify(e.value), b'6e28aca7041720995d4acf59bbda64eef5d6f23723d23f2e994757546674bbd9')
-        else:
-            raise AssertionError
+        bip143 = Bip143()
+        bip143.add_prevouts(self.inp1)
+        bip143.add_sequence(self.inp1)
+        for txo in [self.out1, self.out2]:
+            txo_bin = TxOutputBinType()
+            txo_bin.amount = txo.amount
+            txo_bin.script_pubkey = output_derive_script(txo, coin, root)
+            bip143.add_output(txo_bin)
 
+        result = bip143.preimage(self.tx, self.inp1, unhexlify('76a91479091972186c449eb1ded22b78e40d009bdf008988ac'))
 
+        self.assertEqual(hexlify(result), b'64f3b0f4dd2bb3aa1ce8566d220cc74dda9df97d8490cc81d89d735c92e59fb6')
 
 
 if __name__ == '__main__':
