@@ -4,7 +4,7 @@ from trezor.ui import display
 from trezor.ui.button import Button, BTN_CLICKED
 
 
-def cell_area(i, n_x=3, n_y=3, start_x=0, start_y=40, end_x=240, end_y=240, spacing=0):
+def cell_area(i, n_x=3, n_y=3, start_x=5, start_y=40, end_x=235, end_y=235, spacing=0):
     w = (end_x - start_x) // n_x
     h = (end_y - start_y) // n_y
     x = (i % n_x) * w
@@ -41,7 +41,7 @@ class KeyboardMultiTap(ui.Widget):
         self.pending_index = 0
 
         self.key_buttons = key_buttons()
-        self.sugg_button = Button((5, 5, 240 - 35, 30), '')
+        self.sugg_button = Button((0, 0, 240 - 35, 40), '')
         self.bs_button = Button((240 - 35, 5, 30, 30),
                                 res.load('trezor/res/pin_close.toig'),
                                 normal_style=ui.BTN_CLEAR,
@@ -53,8 +53,12 @@ class KeyboardMultiTap(ui.Widget):
         display.bar(0, 0, 205, 40, ui.BG)
 
         # input line
-        content_width = display.text_width(self.prompt + self.content, ui.BOLD)
-        display.text(20, 30, self.prompt + self.content, ui.BOLD, ui.FG, ui.BG)
+        if self.content:
+            content_width = display.text_width(self.content, ui.BOLD)
+            display.text(20, 30, self.content, ui.BOLD, ui.FG, ui.BG)
+        else:
+            content_width = display.text_width(self.prompt, ui.BOLD)
+            display.text(20, 30, self.prompt, ui.BOLD, ui.GREY, ui.BG)
 
         # pending marker
         if self.pending_button is not None:
@@ -70,6 +74,7 @@ class KeyboardMultiTap(ui.Widget):
 
         # render backspace button
         if self.content:
+            self.bs_button.taint()
             self.bs_button.render()
         else:
             display.bar(240 - 48, 0, 48, 42, ui.BG)

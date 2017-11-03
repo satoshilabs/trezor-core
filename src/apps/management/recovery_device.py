@@ -19,7 +19,7 @@ async def layout_recovery_device(ctx, msg):
 
     kbd = KeyboardMultiTap()
     for i in range(0, msg.word_count):
-        kbd.prompt = '%s. ' % (i + 1)
+        kbd.prompt = 'Write %s. word' % (i + 1)
         word = await kbd
         words.append(word)
 
