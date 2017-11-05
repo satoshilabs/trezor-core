@@ -196,8 +196,9 @@ static void test_pwm(const char *args)
 
 static void test_sd(void)
 {
-    static uint8_t buf1[8 * 1024];
-    static uint8_t buf2[8 * 1024];
+#define BLOCK_SIZE (32 * 1024)
+    static uint32_t buf1[BLOCK_SIZE / sizeof(uint32_t)];
+    static uint32_t buf2[BLOCK_SIZE / sizeof(uint32_t)];
 
     if (sectrue != sdcard_is_present()) {
         vcp_printf("ERROR NOCARD");
@@ -205,21 +206,26 @@ static void test_sd(void)
     }
 
     sdcard_power_on();
-    if (sectrue != sdcard_read_blocks(buf1, 0, 0)) {
-        vcp_printf("ERROR sdcard_read_blocks");
+    if (sectrue != sdcard_read_blocks(buf1, 0, BLOCK_SIZE / SDCARD_BLOCK_SIZE)) {
+        vcp_printf("ERROR sdcard_read_blocks (0)");
         goto power_off;
     }
-    if (sectrue != sdcard_write_blocks(buf1, 0, 0)) {
-        vcp_printf("ERROR sdcard_write_blocks");
-        goto power_off;
-    }
-    if (sectrue != sdcard_read_blocks(buf2, 0, 0)) {
-        vcp_printf("ERROR sdcard_read_blocks");
-        goto power_off;
-    }
-    if (0 != memcmp(buf1, buf2, sizeof(buf1))) {
-        vcp_printf("ERROR DATA MISMATCH");
-        goto power_off;
+    for (int j = 1; j <= 2; j++) {
+        for (int i = 0; i < BLOCK_SIZE / sizeof(uint32_t); i++) {
+            buf1[i] ^= 0xFFFFFFFF;
+        }
+        if (sectrue != sdcard_write_blocks(buf1, 0, BLOCK_SIZE / SDCARD_BLOCK_SIZE)) {
+            vcp_printf("ERROR sdcard_write_blocks (%d)", j);
+            goto power_off;
+        }
+        if (sectrue != sdcard_read_blocks(buf2, 0, BLOCK_SIZE / SDCARD_BLOCK_SIZE)) {
+            vcp_printf("ERROR sdcard_read_blocks (%d)", j);
+            goto power_off;
+        }
+        if (0 != memcmp(buf1, buf2, sizeof(buf1))) {
+            vcp_printf("ERROR DATA MISMATCH");
+            goto power_off;
+        }
     }
     vcp_printf("OK");
 
@@ -240,7 +246,21 @@ static void test_otp_read(void)
     uint8_t data[32];
     memset(data, 0, sizeof(data));
     flash_otp_read(0, 0, data, sizeof(data));
-    vcp_printf("OK %s", (const char *) data);
+
+    // strip trailing 0xFF
+    for (size_t i = 0; i < sizeof(data); i++) {
+        if (data[i] == 0xFF) {
+            data[i] = 0x00;
+            break;
+        }
+    }
+
+    // use (null) for empty data
+    if (data[0] == 0x00) {
+        vcp_printf("OK (null)");
+    } else {
+        vcp_printf("OK %s", (const char *) data);
+    }
 }
 
 static void test_otp_write(const char *args)

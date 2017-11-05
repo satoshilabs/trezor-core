@@ -1,52 +1,107 @@
 #include STM32_HAL_H
 
+#include "flash.h"
 #include "lowlevel.h"
 
-#define WANTED_WRP (OB_WRP_SECTOR_0 | OB_WRP_SECTOR_1 | OB_WRP_SECTOR_2)
-#define WANTED_RDP (OB_RDP_LEVEL_2)
-#define WANTED_BOR (OB_BOR_LEVEL3)
+#pragma GCC optimize("no-stack-protector") // applies to all functions in this file
 
-void flash_set_option_bytes(void)
+#if PRODUCTION
+    #define WANT_RDP_LEVEL   (OB_RDP_LEVEL_2)
+    #define WANT_WRP_SECTORS (OB_WRP_SECTOR_0 | OB_WRP_SECTOR_1 | OB_WRP_SECTOR_2)
+#else
+    #define WANT_RDP_LEVEL   (OB_RDP_LEVEL_0)
+    #define WANT_WRP_SECTORS (0)
+#endif
+
+#define WANT_BOR_LEVEL (OB_BOR_LEVEL2)
+
+// reference RM0090 section 3.9.10; SPRMOD is 0 meaning PCROP disabled.; DB1M is 0 because we use 2MB dual-bank; BFB2 is 0 allowing boot from flash;
+#define FLASH_OPTCR_VALUE ( (((~WANT_WRP_SECTORS) << FLASH_OPTCR_nWRP_Pos) & FLASH_OPTCR_nWRP_Msk) | \
+                            (WANT_RDP_LEVEL << FLASH_OPTCR_RDP_Pos) | FLASH_OPTCR_nRST_STDBY | FLASH_OPTCR_nRST_STOP | FLASH_OPTCR_WDG_SW | WANT_BOR_LEVEL )
+
+// reference RM0090 section 3.7.1 table 16
+#define OPTION_BYTES_RDP_USER_VALUE  ((uint16_t) ((WANT_RDP_LEVEL << FLASH_OPTCR_RDP_Pos) | FLASH_OPTCR_nRST_STDBY | FLASH_OPTCR_nRST_STOP | FLASH_OPTCR_WDG_SW | WANT_BOR_LEVEL))
+#define OPTION_BYTES_BANK1_WRP_VALUE ((uint16_t) ((~WANT_WRP_SECTORS) & 0xFFFU))
+#define OPTION_BYTES_BANK2_WRP_VALUE ((uint16_t) 0xFFFU)
+
+// reference RM0090 section 3.7.1 table 16. use 16 bit pointers because the top 48 bits are all reserved.
+#define OPTION_BYTES_RDP_USER  (*(volatile uint16_t * const) 0x1FFFC000U)
+#define OPTION_BYTES_BANK1_WRP (*(volatile uint16_t * const) 0x1FFFC008U)
+#define OPTION_BYTES_BANK2_WRP (*(volatile uint16_t * const) 0x1FFEC008U)
+
+uint32_t flash_wait_and_clear_status_flags(void)
 {
-    FLASH_OBProgramInitTypeDef opts;
-
-    for(;;) {
-        HAL_FLASHEx_OBGetConfig(&opts);
-
-        opts.OptionType = 0;
-
-        if (opts.WRPSector != WANTED_WRP) {
-            opts.OptionType |= OPTIONBYTE_WRP;
-            opts.WRPState = OB_WRPSTATE_ENABLE;
-            opts.WRPSector = WANTED_WRP;
-            opts.Banks = FLASH_BANK_1;
-        }
-
-        if (opts.RDPLevel != WANTED_RDP) {
-            opts.OptionType |= OPTIONBYTE_RDP;
-            opts.RDPLevel = WANTED_RDP;
-        }
-
-        if (opts.BORLevel != WANTED_BOR) {
-            opts.OptionType |= OPTIONBYTE_BOR;
-            opts.BORLevel = WANTED_BOR;
-        }
-
-        if (opts.OptionType == 0) {
-            break; // protections are configured
-        }
-
-        // attempt to lock down the boardloader sectors
-        HAL_FLASHEx_OBProgram(&opts);
-    }
+    while(FLASH->SR & FLASH_SR_BSY); // wait for all previous flash operations to complete
+    const uint32_t result = FLASH->SR & FLASH_STATUS_ALL_FLAGS; // get the current status flags
+    FLASH->SR |= FLASH_STATUS_ALL_FLAGS; // clear all status flags
+    return result;
 }
 
 secbool flash_check_option_bytes(void)
 {
-    if ((FLASH->OPTCR & FLASH_OPTCR_nWRP) != (FLASH_OPTCR_nWRP_0 | FLASH_OPTCR_nWRP_1 | FLASH_OPTCR_nWRP_2)) return secfalse;
-    if ((FLASH->OPTCR & FLASH_OPTCR_RDP) != FLASH_OPTCR_RDP_2) return secfalse;
-    if ((FLASH->OPTCR & FLASH_OPTCR_BOR_LEV) != (FLASH_OPTCR_BOR_LEV_0 | FLASH_OPTCR_BOR_LEV_1)) return secfalse;
+    flash_wait_and_clear_status_flags();
+    // check values stored in flash interface registers
+    if ((FLASH->OPTCR & ~3) != FLASH_OPTCR_VALUE) { // ignore bits 0 and 1 because they are control bits
+        return secfalse;
+    }
+    if (FLASH->OPTCR1 != FLASH_OPTCR1_nWRP) {
+        return secfalse;
+    }
+    // check values stored in flash memory
+    if ((OPTION_BYTES_RDP_USER & ~3) != OPTION_BYTES_RDP_USER_VALUE) { // bits 0 and 1 are unused
+        return secfalse;
+    }
+    if ((OPTION_BYTES_BANK1_WRP & 0xCFFFU) != OPTION_BYTES_BANK1_WRP_VALUE) { // bits 12 and 13 are unused
+        return secfalse;
+    }
+    if ((OPTION_BYTES_BANK2_WRP & 0xFFFU) != OPTION_BYTES_BANK2_WRP_VALUE) { // bits 12, 13, 14, and 15 are unused
+        return secfalse;
+    }
     return sectrue;
+}
+
+void flash_lock_option_bytes(void)
+{
+    FLASH->OPTCR |= FLASH_OPTCR_OPTLOCK; // lock the option bytes
+}
+
+void flash_unlock_option_bytes(void)
+{
+    if ((FLASH->OPTCR & FLASH_OPTCR_OPTLOCK) == 0) {
+        return; // already unlocked
+    }
+    // reference RM0090 section 3.7.2
+    // write the special sequence to unlock
+    FLASH->OPTKEYR = FLASH_OPT_KEY1;
+    FLASH->OPTKEYR = FLASH_OPT_KEY2;
+    while (FLASH->OPTCR & FLASH_OPTCR_OPTLOCK); // wait until the flash option control register is unlocked
+}
+
+uint32_t flash_set_option_bytes(void)
+{
+    // reference RM0090 section 3.7.2
+    flash_wait_and_clear_status_flags();
+    flash_unlock_option_bytes();
+    flash_wait_and_clear_status_flags();
+    FLASH->OPTCR1 = FLASH_OPTCR1_nWRP; // no write protection on any sectors in bank 2
+    FLASH->OPTCR = FLASH_OPTCR_VALUE; // WARNING: dev board safe unless you compile for PRODUCTION or change this value!!!
+    FLASH->OPTCR |= FLASH_OPTCR_OPTSTRT; // begin committing changes to flash
+    const uint32_t result = flash_wait_and_clear_status_flags(); // wait until changes are committed
+    flash_lock_option_bytes();
+    return result;
+}
+
+secbool flash_configure_option_bytes(void)
+{
+    if (sectrue == flash_check_option_bytes()) {
+        return sectrue; // we DID NOT have to change the option bytes
+    }
+
+    do {
+        flash_set_option_bytes();
+    } while(sectrue != flash_check_option_bytes());
+
+    return secfalse; // notify that we DID have to change the option bytes
 }
 
 void periph_init(void)
@@ -65,13 +120,12 @@ void periph_init(void)
     __HAL_RCC_GPIOD_CLK_ENABLE();
 
     // enable the PVD (programmable voltage detector).
-    // select the "2.7V" threshold (level 5). the typical electrical
-    // characteristic values are similar to BOR level 3.
+    // select the "2.6V" threshold (level 4).
     // this detector will be active regardless of the
     // flash option byte BOR setting.
     __HAL_RCC_PWR_CLK_ENABLE();
     PWR_PVDTypeDef pvd_config;
-    pvd_config.PVDLevel = PWR_PVDLEVEL_5;
+    pvd_config.PVDLevel = PWR_PVDLEVEL_4;
     pvd_config.Mode = PWR_PVD_MODE_IT_RISING_FALLING;
     HAL_PWR_ConfigPVD(&pvd_config);
     HAL_PWR_EnablePVD();

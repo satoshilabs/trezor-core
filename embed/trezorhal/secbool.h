@@ -1,10 +1,10 @@
-#ifndef __TREZORHAL_SECBOOL_H__
-#define __TREZORHAL_SECBOOL_H__
+#ifndef TREZORHAL_SECBOOL_H
+#define TREZORHAL_SECBOOL_H
 
 #include <stdint.h>
 
 typedef uint32_t secbool;
-#define sectrue  0xAAAAAAAA
-#define secfalse 0x00000000
+#define sectrue  0xAAAAAAAAU
+#define secfalse 0x00000000U
 
 #endif

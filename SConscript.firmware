@@ -342,7 +342,8 @@ env.Replace(
         'TREZOR_STM32',
         'MCU_SERIES_F4',
         'STM32F427xx',
-        ('STM32_HAL_H', '"<stm32f4xx_hal.h>"'),
+        'USE_HAL_DRIVER',
+        ('STM32_HAL_H', '"<stm32f4xx.h>"'),
     ] + CPPDEFINES_MOD,
     ASFLAGS='-mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16',
     ASPPFLAGS='$CFLAGS $CCFLAGS', )
@@ -431,6 +432,6 @@ program_bin = env.Command(
     action=[
         '$OBJCOPY -O binary -j .vendorheader -j .header -j .flash -j .data $SOURCE $TARGET',
         '$BINCTL $TARGET -h',
-        'dd if=$TARGET of=build/firmware/header.tosign bs=1 count=1024 skip=`stat -c%s embed/firmware/vendorheader.bin`',
+        'dd if=$TARGET of=build/firmware/header.tosign bs=1 count=1024 skip=`wc -c < embed/firmware/vendorheader.bin | tr -d " "`',
         '$BINCTL $TARGET -s 1:2 `$COMBINE_SIGN firmware build/firmware/header.tosign 4747474747474747474747474747474747474747474747474747474747474747 4848484848484848484848484848484848484848484848484848484848484848`',
     ], )

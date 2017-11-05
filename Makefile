@@ -65,8 +65,8 @@ emu: ## run emulator
 test: ## run unit tests
 	cd tests ; ./run_tests.sh
 
-testpy: ## run selected unit tests from python-trezor
-	cd tests ; ./run_tests_device.sh
+test_emu: ## run selected device tests from python-trezor
+	cd tests ; ./run_tests_device_emu.sh
 
 pylint: ## run pylint on application sources
 	pylint -E $(shell find src -name *.py)
@@ -156,6 +156,9 @@ gdb_boardloader: $(BOARDLOADER_BUILD_DIR)/boardloader.elf ## start remote gdb se
 gdb_bootloader: $(BOOTLOADER_BUILD_DIR)/bootloader.elf ## start remote gdb session to openocd with bootloader symbols
 	$(GDB) $<
 
+gdb_prodtest: $(PRODTEST_BUILD_DIR)/prodtest.elf ## start remote gdb session to openocd with prodtest symbols
+	$(GDB) $<
+
 gdb_firmware: $(FIRMWARE_BUILD_DIR)/firmware.elf ## start remote gdb session to openocd with firmware symbols
 	$(GDB) $<
 
@@ -179,9 +182,9 @@ bloaty: ## run bloaty size profiler
 	bloaty -d compileunits -n 0 -s file $(FIRMWARE_BUILD_DIR)/firmware.elf | less
 
 sizecheck: ## check sizes of binary files
-	test $(BOARDLOADER_MAXSIZE) -ge $(shell stat -c%s $(BOARDLOADER_BUILD_DIR)/boardloader.bin)
-	test $(BOOTLOADER_MAXSIZE) -ge $(shell stat -c%s $(BOOTLOADER_BUILD_DIR)/bootloader.bin)
-	test $(FIRMWARE_MAXSIZE) -ge $(shell stat -c%s $(FIRMWARE_BUILD_DIR)/firmware.bin)
+	test $(BOARDLOADER_MAXSIZE) -ge $(shell wc -c < $(BOARDLOADER_BUILD_DIR)/boardloader.bin)
+	test $(BOOTLOADER_MAXSIZE) -ge $(shell wc -c < $(BOOTLOADER_BUILD_DIR)/bootloader.bin)
+	test $(FIRMWARE_MAXSIZE) -ge $(shell wc -c < $(FIRMWARE_BUILD_DIR)/firmware.bin)
 
 combine: ## combine boardloader + bootloader + prodtest into one combined image
 	./tools/combine_firmware \

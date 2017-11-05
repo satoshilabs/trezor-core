@@ -13,61 +13,88 @@
 #include "secbool.h"
 #include "touch.h"
 
-I2C_HandleTypeDef i2c_handle = {
-    .Instance = I2C1,
-};
+static I2C_HandleTypeDef i2c_handle;
 
 void touch_init(void)
 {
+    GPIO_InitTypeDef GPIO_InitStructure;
+
     // Enable I2C clock
     __HAL_RCC_I2C1_CLK_ENABLE();
 
     // Init SCL and SDA GPIO lines (PB6 & PB7)
-    GPIO_InitTypeDef GPIO_InitStructure = {
-        .Pin = GPIO_PIN_6 | GPIO_PIN_7,
-        .Mode = GPIO_MODE_AF_OD,
-        .Pull = GPIO_NOPULL,
-        .Speed = GPIO_SPEED_FREQ_VERY_HIGH,
-        .Alternate = GPIO_AF4_I2C1,
-    };
+    GPIO_InitStructure.Pin = GPIO_PIN_6 | GPIO_PIN_7;
+    GPIO_InitStructure.Mode = GPIO_MODE_AF_OD;
+    GPIO_InitStructure.Pull = GPIO_NOPULL;
+    GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStructure.Alternate = GPIO_AF4_I2C1;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-    I2C_InitTypeDef *init = &(i2c_handle.Init);
-    init->OwnAddress1 = 0xFE; // master
-    init->ClockSpeed = 400000;
-    init->DutyCycle = I2C_DUTYCYCLE_16_9;
-    init->AddressingMode  = I2C_ADDRESSINGMODE_7BIT;
-    init->DualAddressMode = I2C_DUALADDRESS_DISABLE;
-    init->GeneralCallMode = I2C_GENERALCALL_DISABLE;
-    init->NoStretchMode   = I2C_NOSTRETCH_DISABLE;
-    init->OwnAddress2     = 0;
+    i2c_handle.Instance = I2C1;
+    i2c_handle.Init.ClockSpeed = 400000;
+    i2c_handle.Init.DutyCycle = I2C_DUTYCYCLE_16_9;
+    i2c_handle.Init.OwnAddress1 = 0xFE; // master
+    i2c_handle.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+    i2c_handle.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+    i2c_handle.Init.OwnAddress2 = 0;
+    i2c_handle.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+    i2c_handle.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
 
     ensure(sectrue * (HAL_OK == HAL_I2C_Init(&i2c_handle)), NULL);
+
+    // PC5 capacitive touch panel module reset (RSTN)
+    GPIO_InitStructure.Pin = GPIO_PIN_5;
+    GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStructure.Pull = GPIO_PULLUP;
+    GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStructure.Alternate = 0;
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStructure);
+    // reset the touch panel by toggling the reset line (active low)
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET);
+    HAL_Delay(10); // being conservative, min is 5ms
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET);
+    HAL_Delay(10); // being conservative, min is 5ms
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET);
+    HAL_Delay(310); // "Time of starting to report point after resetting" min is 300ms
 }
 
-#define TOUCH_ADDRESS 56
-#define TOUCH_PACKET_SIZE 16
+#define TOUCH_ADDRESS (0x38U << 1) // the HAL requires the 7-bit address to be shifted by one bit
+#define TOUCH_PACKET_SIZE 7U
+#define EVENT_PRESS_DOWN 0x00U
+#define EVENT_CONTACT 0x80U
+#define EVENT_LIFT_UP 0x40U
+#define EVENT_NO_EVENT 0xC0U
+#define GESTURE_NO_GESTURE 0x00U
+#define X_POS_MSB (touch_data[3] & 0xFU)
+#define X_POS_LSB (touch_data[4])
+#define Y_POS_MSB (touch_data[5] & 0xFU)
+#define Y_POS_LSB (touch_data[6])
+#define X_Y_POS ((X_POS_MSB << 20) | (X_POS_LSB << 12) | (Y_POS_MSB << 8) | (Y_POS_LSB))
 
 uint32_t touch_read(void)
 {
-    static uint8_t data[TOUCH_PACKET_SIZE], old_data[TOUCH_PACKET_SIZE];
-    if (HAL_OK != HAL_I2C_Master_Receive(&i2c_handle, TOUCH_ADDRESS << 1, data, TOUCH_PACKET_SIZE, 1)) {
+    static uint8_t touch_data[TOUCH_PACKET_SIZE], previous_touch_data[TOUCH_PACKET_SIZE];
+
+    if (HAL_OK != HAL_I2C_Master_Receive(&i2c_handle, TOUCH_ADDRESS, touch_data, TOUCH_PACKET_SIZE, 1)) {
         return 0; // read failure
     }
-    if (0 == memcmp(data, old_data, TOUCH_PACKET_SIZE)) {
-        return 0; // no new event
-    }
-    memcpy(old_data, data, TOUCH_PACKET_SIZE);
 
-    if (data[0] == 0xff && data[1] == 0x00) {
-        if (data[2] == 0x01 && data[3] == 0x00) {
-            return TOUCH_START | (data[4] << 8) | data[6]; // touch start
-        } else
-        if (data[2] == 0x01 && data[3] == 0x80) {
-            return TOUCH_MOVE  | (data[4] << 8) | data[6]; // touch move
-        } else
-        if (data[2] == 0x00 && data[3] == 0x40) {
-            return TOUCH_END   | (data[4] << 8) | data[6]; // touch end
+    if (0 == memcmp(previous_touch_data, touch_data, TOUCH_PACKET_SIZE)) {
+        return 0; // polled and got the same event again
+    } else {
+        memcpy(previous_touch_data, touch_data, TOUCH_PACKET_SIZE);
+    }
+
+    const uint32_t number_of_touch_points = touch_data[2] & 0x0F; // valid values are 0, 1, 2 (invalid 0xF before first touch) (tested with FT6206)
+    const uint32_t event_flag = touch_data[3] & 0xC0;
+
+    if (touch_data[1] == GESTURE_NO_GESTURE) {
+        if ((number_of_touch_points == 1) && (event_flag == EVENT_PRESS_DOWN)) {
+            return TOUCH_START | X_Y_POS;
+        } else if ((number_of_touch_points == 1) && (event_flag == EVENT_CONTACT)) {
+            return TOUCH_MOVE | X_Y_POS;
+        } else if ((number_of_touch_points == 0) && (event_flag == EVENT_LIFT_UP)) {
+            return TOUCH_END | X_Y_POS;
         }
     }
 
@@ -76,7 +103,7 @@ uint32_t touch_read(void)
 
 uint32_t touch_click(void)
 {
-    uint32_t r;
+    uint32_t r = 0;
     // flush touch events if any
     while (touch_read()) { }
     // wait for TOUCH_START

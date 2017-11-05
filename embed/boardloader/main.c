@@ -38,9 +38,9 @@ static uint32_t check_sdcard(void)
         return 0;
     }
 
-    uint32_t buf[SDCARD_BLOCK_SIZE / sizeof(uint32_t)];
+    uint32_t buf[IMAGE_HEADER_SIZE / sizeof(uint32_t)];
 
-    sdcard_read_blocks(buf, 0, 1);
+    sdcard_read_blocks(buf, 0, IMAGE_HEADER_SIZE / SDCARD_BLOCK_SIZE);
 
     sdcard_power_off();
 
@@ -124,7 +124,7 @@ static secbool copy_sdcard(void)
 
     uint32_t buf[SDCARD_BLOCK_SIZE / sizeof(uint32_t)];
     for (int i = 0; i < (IMAGE_HEADER_SIZE + codelen) / SDCARD_BLOCK_SIZE; i++) {
-        sdcard_read_blocks((uint8_t *)buf, i, 1);
+        sdcard_read_blocks(buf, i, 1);
         for (int j = 0; j < SDCARD_BLOCK_SIZE / sizeof(uint32_t); j++) {
             if (sectrue != flash_write_word(BOOTLOADER_START + i * SDCARD_BLOCK_SIZE + j * sizeof(uint32_t), buf[j])) {
                 display_printf("copy failed\n");
@@ -146,23 +146,22 @@ static secbool copy_sdcard(void)
 
 int main(void)
 {
-    periph_init(); // need the systick timer running before the production flash (and many other HAL) operations
-
     if (sectrue != reset_flags_init()) {
         return 1;
     }
 
-#if PRODUCTION
-    flash_set_option_bytes();
-    if (sectrue != flash_check_option_bytes()) {
-        uint8_t sectors[] = {
+    // need the systick timer running before many HAL operations.
+    // want the PVD enabled before flash operations too.
+    periph_init();
+
+    if (sectrue != flash_configure_option_bytes()) {
+        const uint8_t sectors[] = {
             FLASH_SECTOR_STORAGE_1,
             FLASH_SECTOR_STORAGE_2,
         };
         flash_erase_sectors(sectors, 2, NULL);
         return 2;
     }
-#endif
 
     clear_otg_hs_memory();
 
