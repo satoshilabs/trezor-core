@@ -6,13 +6,8 @@ EXE=build/unix/micropython
 OPTLEVEL="${OPTLEVEL:-0}"
 MAIN="${MAIN:-main.py}"
 BROWSER="${BROWSER:-chromium}"
-if file $EXE | grep -q 80386 ; then
-HEAPSIZE="${HEAPSIZE:-100000}"
-else
-HEAPSIZE="${HEAPSIZE:-1000000}"
-fi
 
-ARGS="-O${OPTLEVEL} -X heapsize=${HEAPSIZE}"
+ARGS="-O${OPTLEVEL} -X heapsize=${HEAPSIZE:-163K}"
 
 cd `dirname $0`/src
 
