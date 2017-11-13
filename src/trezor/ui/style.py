@@ -104,7 +104,7 @@ BTN_CONFIRM_ACTIVE = {
     'radius': RADIUS,
 }
 BTN_CLEAR = {
-    'bg-color': BG,
+    'bg-color': ORANGE,
     'fg-color': FG,
     'text-style': NORMAL,
     'border-color': BG,

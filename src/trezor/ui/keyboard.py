@@ -42,8 +42,8 @@ class KeyboardMultiTap(ui.Widget):
 
         self.key_buttons = key_buttons()
         self.sugg_button = Button((0, 0, 240 - 35, 40), '')
-        self.bs_button = Button((240 - 35, 5, 30, 30),
-                                res.load('trezor/res/pin_close.toig'),
+        self.bs_button = Button((240 - 46, 7, 40, 35),
+                                res.load('trezor/res/cross2.toig'),
                                 normal_style=ui.BTN_CLEAR,
                                 active_style=ui.BTN_CLEAR_ACTIVE)
 
@@ -55,22 +55,16 @@ class KeyboardMultiTap(ui.Widget):
         # input line
         if self.content:
             content_width = display.text_width(self.content, ui.BOLD)
-            display.text(20, 30, self.content, ui.BOLD, ui.FG, ui.BG)
+            display.bar_radius(10, 10, 190, 28, ui.BLACKISH, ui.BG, ui.RADIUS)
+            display.text(20, 30, self.content, ui.BOLD, ui.FG, ui.BLACKISH)
+            # auto-suggest
+            if self.sugg_word is not None:
+                sugg_rest = self.sugg_word[len(self.content):]
+                sugg_x = 20 + content_width
+                display.text(sugg_x, 30, sugg_rest, ui.BOLD, ui.GREY, ui.BLACKISH)
         else:
             content_width = display.text_width(self.prompt, ui.BOLD)
             display.text(20, 30, self.prompt, ui.BOLD, ui.GREY, ui.BG)
-
-        # pending marker
-        if self.pending_button is not None:
-            pending_width = display.text_width(self.content[-1:], ui.BOLD)
-            pending_x = 20 + content_width - pending_width
-            display.bar(pending_x, 33, pending_width + 2, 3, ui.FG)
-
-        # auto-suggest
-        if self.sugg_word is not None:
-            sugg_rest = self.sugg_word[len(self.content):]
-            sugg_x = 20 + content_width
-            display.text(sugg_x, 30, sugg_rest, ui.BOLD, ui.GREY, ui.BG)
 
         # render backspace button
         if self.content:
@@ -78,6 +72,12 @@ class KeyboardMultiTap(ui.Widget):
             self.bs_button.render()
         else:
             display.bar(240 - 48, 0, 48, 42, ui.BG)
+
+        # pending marker
+        if self.pending_button is not None:
+            pending_width = display.text_width(self.content[-1:], ui.BOLD)
+            pending_x = 20 + content_width - pending_width
+            display.bar(pending_x, 33, pending_width + 2, 3, ui.FG)
 
         # key buttons
         for btn in self.key_buttons:

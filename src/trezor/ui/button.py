@@ -70,7 +70,7 @@ class Button(Widget):
                                 s['bg-color'])
 
         else:
-            display.icon(tx - 15, ty - 20, self.content,
+            display.icon(tx - 8, ty - 16, self.content,
                          s['fg-color'],
                          s['bg-color'])
 
