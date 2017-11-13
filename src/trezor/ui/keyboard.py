@@ -4,7 +4,7 @@ from trezor.ui import display
 from trezor.ui.button import Button, BTN_CLICKED
 
 
-def cell_area(i, n_x=3, n_y=3, start_x=0, start_y=40, end_x=240, end_y=240 - 48, spacing=0):
+def cell_area(i, n_x=3, n_y=3, start_x=5, start_y=40, end_x=235, end_y=235, spacing=0):
     w = (end_x - start_x) // n_x
     h = (end_y - start_y) // n_y
     x = (i % n_x) * w
@@ -32,17 +32,18 @@ def compute_mask(text):
 
 class KeyboardMultiTap(ui.Widget):
 
-    def __init__(self, content=''):
+    def __init__(self, content='', prompt=''):
         self.content = content
+        self.prompt = prompt
         self.sugg_mask = 0xffffffff
         self.sugg_word = None
         self.pending_button = None
         self.pending_index = 0
 
         self.key_buttons = key_buttons()
-        self.sugg_button = Button((5, 5, 240 - 35, 30), '')
-        self.bs_button = Button((240 - 35, 5, 30, 30),
-                                res.load('trezor/res/pin_close.toig'),
+        self.sugg_button = Button((0, 0, 240 - 35, 40), '')
+        self.bs_button = Button((240 - 46, 7, 40, 35),
+                                res.load('trezor/res/cross2.toig'),
                                 normal_style=ui.BTN_CLEAR,
                                 active_style=ui.BTN_CLEAR_ACTIVE)
 
@@ -52,26 +53,31 @@ class KeyboardMultiTap(ui.Widget):
         display.bar(0, 0, 205, 40, ui.BG)
 
         # input line
-        content_width = display.text_width(self.content, ui.BOLD)
-        display.text(20, 30, self.content, ui.BOLD, ui.FG, ui.BG)
+        if self.content:
+            content_width = display.text_width(self.content, ui.BOLD)
+            display.bar_radius(10, 10, 190, 28, ui.BLACKISH, ui.BG, ui.RADIUS)
+            display.text(20, 30, self.content, ui.BOLD, ui.FG, ui.BLACKISH)
+            # auto-suggest
+            if self.sugg_word is not None:
+                sugg_rest = self.sugg_word[len(self.content):]
+                sugg_x = 20 + content_width
+                display.text(sugg_x, 30, sugg_rest, ui.BOLD, ui.GREY, ui.BLACKISH)
+        else:
+            content_width = display.text_width(self.prompt, ui.BOLD)
+            display.text(20, 30, self.prompt, ui.BOLD, ui.GREY, ui.BG)
+
+        # render backspace button
+        if self.content:
+            self.bs_button.taint()
+            self.bs_button.render()
+        else:
+            display.bar(240 - 48, 0, 48, 42, ui.BG)
 
         # pending marker
         if self.pending_button is not None:
             pending_width = display.text_width(self.content[-1:], ui.BOLD)
             pending_x = 20 + content_width - pending_width
             display.bar(pending_x, 33, pending_width + 2, 3, ui.FG)
-
-        # auto-suggest
-        if self.sugg_word is not None:
-            sugg_rest = self.sugg_word[len(self.content):]
-            sugg_x = 20 + content_width
-            display.text(sugg_x, 30, sugg_rest, ui.BOLD, ui.GREY, ui.BG)
-
-        # render backspace button
-        if self.content:
-            self.bs_button.render()
-        else:
-            display.bar(240 - 48, 0, 48, 42, ui.BG)
 
         # key buttons
         for btn in self.key_buttons:
@@ -85,13 +91,18 @@ class KeyboardMultiTap(ui.Widget):
             self._update_suggestion()
             self._update_buttons()
             return
-        if self.sugg_button.touch(event, pos) == BTN_CLICKED and self.sugg_word is not None:
-            self.content = self.sugg_word
+        if self.sugg_button.touch(event, pos) == BTN_CLICKED:
+            if self.content == bip39.find_word(self.content):
+                result = self.content
+                self.content = ''
+            elif self.sugg_word is not None:
+                result = None
+                self.content = self.sugg_word
             self.pending_button = None
             self.pending_index = 0
             self._update_suggestion()
             self._update_buttons()
-            return
+            return result
         for btn in self.key_buttons:
             if btn.touch(event, pos) == BTN_CLICKED:
                 if self.pending_button is btn:
@@ -117,7 +128,7 @@ class KeyboardMultiTap(ui.Widget):
 
     def _update_buttons(self):
         for btn in self.key_buttons:
-            if compute_mask(btn.content) & self.sugg_mask:
+            if btn is self.pending_button or compute_mask(btn.content) & self.sugg_mask:
                 btn.enable()
             else:
                 btn.disable()
@@ -125,18 +136,27 @@ class KeyboardMultiTap(ui.Widget):
     def __iter__(self):
         timeout = loop.sleep(1000 * 1000 * 1)
         touch = loop.select(io.TOUCH)
-        wait = loop.wait(touch, timeout)
-        while True:
+        wait_timeout = loop.wait(touch, timeout)
+        wait_touch = loop.wait(touch)
+        content = None
+        while content is None:
             self.render()
+            if self.pending_button is not None:
+                wait = wait_timeout
+            else:
+                wait = wait_touch
             result = yield wait
             if touch in wait.finished:
                 event, *pos = result
-                self.touch(event, pos)
+                content = self.touch(event, pos)
             else:
                 self.pending_button = None
                 self.pending_index = 0
-                self._update_suggestion()
-                self._update_buttons()
+                if self.sugg_word is None:
+                    self.content = self.content[:-1]
+            self._update_suggestion()
+            self._update_buttons()
+        return content
 
 
 def zoom_buttons(keys, upper=False):
