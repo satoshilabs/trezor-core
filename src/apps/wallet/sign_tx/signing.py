@@ -6,8 +6,6 @@ from trezor.utils import ensure
 from trezor.messages.CoinType import CoinType
 from trezor.messages.SignTx import SignTx
 from trezor.messages.TxOutputType import TxOutputType
-from trezor.messages.TxOutputBinType import TxOutputBinType
-from trezor.messages.TxInputType import TxInputType
 from trezor.messages.TxRequest import TxRequest
 from trezor.messages.TransactionType import TransactionType
 from trezor.messages.RequestType import TXINPUT, TXOUTPUT, TXMETA, TXFINISHED
@@ -17,7 +15,9 @@ from trezor.messages import OutputScriptType, InputScriptType, FailureType
 
 from apps.common import address_type
 from apps.common import coins
-
+from apps.wallet.sign_tx.segwit_bip143 import *
+from apps.wallet.sign_tx.writers import *
+from common import *
 
 # Machine instructions
 # ===
@@ -137,36 +137,40 @@ def sanitize_tx_binoutput(tx: TransactionType) -> TxOutputBinType:
 # Transaction signing
 # ===
 
+# Phase 1
+# - check inputs, previous transactions, and outputs
+# - ask for confirmations
+# - check fee
+async def check_tx_fee(tx: SignTx, root, segwit):
 
-async def sign_tx(tx: SignTx, root):
-
-    tx = sanitize_sign_tx(tx)
     coin = coins.by_name(tx.coin_name)
-
-    # Phase 1
-    # - check inputs, previous transactions, and outputs
-    # - ask for confirmations
-    # - check fee
-
-    total_in = 0  # sum of input amounts
-    total_out = 0  # sum of output amounts
-    change_out = 0  # change output amount
 
     # h_first is used to make sure the inputs and outputs streamed in Phase 1
     # are the same as in Phase 2.  it is thus not required to fully hash the
     # tx, as the SignTx info is streamed only once
     h_first = HashWriter(sha256)  # not a real tx hash
+    bip143 = Bip143()
 
     txo_bin = TxOutputBinType()
     tx_req = TxRequest()
     tx_req.details = TxRequestDetailsType()
 
+    total_in = 0  # sum of input amounts
+    total_out = 0  # sum of output amounts
+    change_out = 0  # change output amount
+
     for i in range(tx.inputs_count):
         # STAGE_REQUEST_1_INPUT
         txi = await request_tx_input(tx_req, i)
         write_tx_input_check(h_first, txi)
-        total_in += await get_prevtx_output_value(
-            tx_req, txi.prev_hash, txi.prev_index)
+        if segwit:
+            # Add I to segwit hash_prevouts, hash_sequence
+            bip143.add_prevouts(txi)
+            bip143.add_sequence(txi)
+            total_in += txi.amount
+        else:
+            total_in += await get_prevtx_output_value(
+                tx_req, txi.prev_hash, txi.prev_index)
 
     for o in range(tx.outputs_count):
         # STAGE_REQUEST_3_OUTPUT
@@ -183,10 +187,10 @@ async def sign_tx(tx: SignTx, root):
         txo_bin.amount = txo.amount
         txo_bin.script_pubkey = output_derive_script(txo, coin, root)
         write_tx_output(h_first, txo_bin)
+        bip143.add_output(txo_bin)
         total_out += txo_bin.amount
 
     fee = total_in - total_out
-
     if fee < 0:
         raise SigningError(FailureType.NotEnoughFunds,
                            'Not enough funds')
@@ -200,10 +204,22 @@ async def sign_tx(tx: SignTx, root):
         raise SigningError(FailureType.ActionCancelled,
                            'Total cancelled')
 
+    return h_first, tx_req, txo_bin, bip143
+
+
+async def sign_tx(tx: SignTx, root, segwit=False):
+
+    tx = sanitize_sign_tx(tx)
+
+    # Phase 1
+
+    h_first, tx_req, txo_bin, bip143 = await check_tx_fee(tx, root, segwit)
+
     # Phase 2
     # - sign inputs
     # - check that nothing changed
 
+    coin = coins.by_name(tx.coin_name)
     tx_ser = TxRequestSerializedType()
 
     for i_sign in range(tx.inputs_count):
@@ -220,55 +236,64 @@ async def sign_tx(tx: SignTx, root):
 
         write_varint(h_sign, tx.inputs_count)
 
-        for i in range(tx.inputs_count):
-            # STAGE_REQUEST_4_INPUT
-            txi = await request_tx_input(tx_req, i)
-            write_tx_input_check(h_second, txi)
-            if i == i_sign:
-                txi_sign = txi
-                key_sign = node_derive(root, txi.address_n)
-                key_sign_pub = key_sign.public_key()
-                txi.script_sig = input_derive_script(txi, key_sign_pub)
-            else:
-                txi.script_sig = bytes()
-            write_tx_input(h_sign, txi)
+        if segwit:
+            txi = await request_tx_input(tx_req, i_sign)
+            # if hashType != ANYONE_CAN_PAY ? todo
 
-        write_varint(h_sign, tx.outputs_count)
+            # todo: what to do with other types?
+            script_code = output_derive_script(txi, coin, root)
+            bip143.preimage(tx, txi, script_code)
+            # Return serialized input chunk ? todo
+        else:
+            for i in range(tx.inputs_count):
+                # STAGE_REQUEST_4_INPUT
+                txi = await request_tx_input(tx_req, i)
+                write_tx_input_check(h_second, txi)
+                if i == i_sign:
+                    txi_sign = txi
+                    key_sign = node_derive(root, txi.address_n)
+                    key_sign_pub = key_sign.public_key()
+                    txi.script_sig = input_derive_script(txi, key_sign_pub)
+                else:
+                    txi.script_sig = bytes()
+                write_tx_input(h_sign, txi)
 
-        for o in range(tx.outputs_count):
-            # STAGE_REQUEST_4_OUTPUT
-            txo = await request_tx_output(tx_req, o)
-            txo_bin.amount = txo.amount
-            txo_bin.script_pubkey = output_derive_script(txo, coin, root)
-            write_tx_output(h_second, txo_bin)
-            write_tx_output(h_sign, txo_bin)
+            write_varint(h_sign, tx.outputs_count)
 
-        write_uint32(h_sign, tx.lock_time)
+            for o in range(tx.outputs_count):
+                # STAGE_REQUEST_4_OUTPUT
+                txo = await request_tx_output(tx_req, o)
+                txo_bin.amount = txo.amount
+                txo_bin.script_pubkey = output_derive_script(txo, coin, root)
+                write_tx_output(h_second, txo_bin)
+                write_tx_output(h_sign, txo_bin)
 
-        write_uint32(h_sign, 0x00000001)  # SIGHASH_ALL hash_type
+            write_uint32(h_sign, tx.lock_time)
 
-        # check the control digests
-        if get_tx_hash(h_first, False) != get_tx_hash(h_second, False):
-            raise SigningError(FailureType.ProcessError,
-                               'Transaction has changed during signing')
+            write_uint32(h_sign, 0x00000001)  # SIGHASH_ALL hash_type
 
-        # compute the signature from the tx digest
-        signature = ecdsa_sign(key_sign, get_tx_hash(h_sign, True))
-        tx_ser.signature_index = i_sign
-        tx_ser.signature = signature
+            # check the control digests
+            if get_tx_hash(h_first, False) != get_tx_hash(h_second, False):
+                raise SigningError(FailureType.ProcessError,
+                                   'Transaction has changed during signing')
 
-        # serialize input with correct signature
-        txi_sign.script_sig = input_derive_script(
-            txi_sign, key_sign_pub, signature)
-        w_txi_sign = bytearray_with_cap(
-            len(txi_sign.prev_hash) + 4 + 5 + len(txi_sign.script_sig) + 4)
-        if i_sign == 0:  # serializing first input => prepend tx version and inputs count
-            write_uint32(w_txi_sign, tx.version)
-            write_varint(w_txi_sign, tx.inputs_count)
-        write_tx_input(w_txi_sign, txi_sign)
-        tx_ser.serialized_tx = w_txi_sign
+            # compute the signature from the tx digest
+            signature = ecdsa_sign(key_sign, get_tx_hash(h_sign, True))
+            tx_ser.signature_index = i_sign
+            tx_ser.signature = signature
 
-        tx_req.serialized = tx_ser
+            # serialize input with correct signature
+            txi_sign.script_sig = input_derive_script(
+                txi_sign, key_sign_pub, signature)
+            w_txi_sign = bytearray_with_cap(
+                len(txi_sign.prev_hash) + 4 + 5 + len(txi_sign.script_sig) + 4)
+            if i_sign == 0:  # serializing first input => prepend tx version and inputs count
+                write_uint32(w_txi_sign, tx.version)
+                write_varint(w_txi_sign, tx.inputs_count)
+            write_tx_input(w_txi_sign, txi_sign)
+            tx_ser.serialized_tx = w_txi_sign
+
+            tx_req.serialized = tx_ser
 
     for o in range(tx.outputs_count):
         # STAGE_REQUEST_5_OUTPUT
@@ -327,15 +352,6 @@ async def get_prevtx_output_value(tx_req: TxRequest, prev_hash: bytes, prev_inde
     return total_out
 
 
-def get_tx_hash(w, double: bool, reverse: bool=False) -> bytes:
-    d = w.getvalue()
-    if double:
-        d = sha256(d).digest()
-    if reverse:
-        d = bytes(reversed(d))
-    return d
-
-
 def estimate_tx_size(inputs, outputs):
     return 10 + inputs * 149 + outputs * 35
 
@@ -345,7 +361,7 @@ def estimate_tx_size(inputs, outputs):
 
 
 def output_derive_script(o: TxOutputType, coin: CoinType, root) -> bytes:
-    if o.script_type == OutputScriptType.PAYTOADDRESS:
+    if o.script_type in (OutputScriptType.PAYTOADDRESS, OutputScriptType.PAYTOWITNESS):
         ra = output_paytoaddress_extract_raw_address(o, coin, root)
         ra = address_type.strip(coin.address_type, ra)
         return script_paytoaddress_new(ra)
@@ -469,120 +485,3 @@ def script_spendaddress_new(pubkey: bytes, signature: bytes) -> bytearray:
     write_op_push(w, len(pubkey))
     write_bytes(w, pubkey)
     return w
-
-
-# TX Serialization
-# ===
-
-_DEFAULT_SEQUENCE = 4294967295
-
-
-def write_tx_input(w, i: TxInputType):
-    i_sequence = i.sequence if i.sequence is not None else _DEFAULT_SEQUENCE
-    write_bytes_rev(w, i.prev_hash)
-    write_uint32(w, i.prev_index)
-    write_varint(w, len(i.script_sig))
-    write_bytes(w, i.script_sig)
-    write_uint32(w, i_sequence)
-
-
-def write_tx_input_check(w, i: TxInputType):
-    i_sequence = i.sequence if i.sequence is not None else _DEFAULT_SEQUENCE
-    write_bytes(w, i.prev_hash)
-    write_uint32(w, i.prev_index)
-    write_uint32(w, len(i.address_n))
-    for n in i.address_n:
-        write_uint32(w, n)
-    write_uint32(w, i_sequence)
-
-
-def write_tx_output(w, o: TxOutputBinType):
-    write_uint64(w, o.amount)
-    write_varint(w, len(o.script_pubkey))
-    write_bytes(w, o.script_pubkey)
-
-
-def write_op_push(w, n: int):
-    if n < 0x4C:
-        w.append(n & 0xFF)
-    elif n < 0xFF:
-        w.append(0x4C)
-        w.append(n & 0xFF)
-    elif n < 0xFFFF:
-        w.append(0x4D)
-        w.append(n & 0xFF)
-        w.append((n >> 8) & 0xFF)
-    else:
-        w.append(0x4E)
-        w.append(n & 0xFF)
-        w.append((n >> 8) & 0xFF)
-        w.append((n >> 16) & 0xFF)
-        w.append((n >> 24) & 0xFF)
-
-
-# Buffer IO & Serialization
-# ===
-
-
-def write_varint(w, n: int):
-    if n < 253:
-        w.append(n & 0xFF)
-    elif n < 65536:
-        w.append(253)
-        w.append(n & 0xFF)
-        w.append((n >> 8) & 0xFF)
-    else:
-        w.append(254)
-        w.append(n & 0xFF)
-        w.append((n >> 8) & 0xFF)
-        w.append((n >> 16) & 0xFF)
-        w.append((n >> 24) & 0xFF)
-
-
-def write_uint32(w, n: int):
-    w.append(n & 0xFF)
-    w.append((n >> 8) & 0xFF)
-    w.append((n >> 16) & 0xFF)
-    w.append((n >> 24) & 0xFF)
-
-
-def write_uint64(w, n: int):
-    w.append(n & 0xFF)
-    w.append((n >> 8) & 0xFF)
-    w.append((n >> 16) & 0xFF)
-    w.append((n >> 24) & 0xFF)
-    w.append((n >> 32) & 0xFF)
-    w.append((n >> 40) & 0xFF)
-    w.append((n >> 48) & 0xFF)
-    w.append((n >> 56) & 0xFF)
-
-
-def write_bytes(w, buf: bytearray):
-    w.extend(buf)
-
-
-def write_bytes_rev(w, buf: bytearray):
-    w.extend(bytearray(reversed(buf)))
-
-
-def bytearray_with_cap(cap: int) -> bytearray:
-    b = bytearray(cap)
-    b[:] = bytes()
-    return b
-
-
-class HashWriter:
-
-    def __init__(self, hashfunc):
-        self.ctx = hashfunc()
-        self.buf = bytearray(1)  # used in append()
-
-    def extend(self, buf: bytearray):
-        self.ctx.update(buf)
-
-    def append(self, b: int):
-        self.buf[0] = b
-        self.ctx.update(self.buf)
-
-    def getvalue(self) -> bytes:
-        return self.ctx.digest()
