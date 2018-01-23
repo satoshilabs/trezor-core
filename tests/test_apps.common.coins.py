@@ -15,6 +15,7 @@ class TestCoins(unittest.TestCase):
             ('DASH', 'Dash', 76),
             ('ZEC', 'Zcash', 7352),
             ('TAZ', 'Zcash Testnet', 7461),
+            ('TRC', 'Terracoin', 0),
         ]
         for s, n, a in ref:
             c1 = coins.by_shortcut(s)
