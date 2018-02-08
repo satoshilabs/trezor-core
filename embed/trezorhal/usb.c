@@ -297,6 +297,7 @@ static uint8_t usb_class_deinit(USBD_HandleTypeDef *dev, uint8_t cfg_idx) {
 #define USB_WEBUSB_DESCRIPTOR_TYPE_URL  0x03
 #define USB_WEBUSB_URL_SCHEME_HTTP      0
 #define USB_WEBUSB_URL_SCHEME_HTTPS     1
+#define USB_WEBUSB_URL_SCHEME_ENTIRE    255
 
 static uint8_t usb_class_setup(USBD_HandleTypeDef *dev, USBD_SetupReqTypedef *req) {
     if (((req->bmRequest & USB_REQ_TYPE_MASK) != USB_REQ_TYPE_CLASS) &&
@@ -310,10 +311,10 @@ static uint8_t usb_class_setup(USBD_HandleTypeDef *dev, USBD_SetupReqTypedef *re
             if (sectrue == usb21_enabled && req->bRequest == USB_WEBUSB_VENDOR_CODE) {
                 if (req->wIndex == USB_WEBUSB_REQ_GET_URL && req->wValue == USB_WEBUSB_LANDING_PAGE) {
                     static const char webusb_url[] = {
-                        3 + 15,                             // uint8_t bLength
+                        3 + 23,                             // uint8_t bLength
                         USB_WEBUSB_DESCRIPTOR_TYPE_URL,     // uint8_t bDescriptorType
-                        USB_WEBUSB_URL_SCHEME_HTTPS,        // uint8_t bScheme
-                        't', 'r', 'e', 'z', 'o', 'r', '.', 'i', 'o', '/', 's', 't', 'a', 'r', 't',  // char URL[]
+                        USB_WEBUSB_URL_SCHEME_ENTIRE,        // uint8_t bScheme
+                        'h', 't', 't', 'p', 's', ':', '/', '/', 't', 'r', 'e', 'z', 'o', 'r', '.', 'i', 'o', '/', 's', 't', 'a', 'r', 't',  // char URL[]
                     };
                     USBD_CtlSendData(dev, UNCONST(webusb_url), MIN(req->wLength, sizeof(webusb_url)));
                     return USBD_OK;
