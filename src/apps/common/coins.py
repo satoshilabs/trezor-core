@@ -160,6 +160,18 @@ COINS = [
         bitcore=['https://ltc-bitcore3.trezor.io'],
     ),
     CoinType(
+        coin_name='Viacoin',
+        coin_shortcut='VIA',
+        address_type=71,
+        address_type_p2sh=22,
+        maxfee_kb=40000000,
+        signed_message_header='Viacoin Signed Message:\n',
+        xpub_magic=0X0488B21E,
+        xprv_magic=0X0488ADE4,
+        bip44=14,
+        segwit=True,
+    ),
+    CoinType(
         coin_name='Dogecoin',
         coin_shortcut='DOGE',
         coin_label='Dogecoin',
