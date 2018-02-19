@@ -11,6 +11,7 @@ class TestCoins(unittest.TestCase):
             ('TEST', 'Testnet', 111),
             ('NMC', 'Namecoin', 52),
             ('LTC', 'Litecoin', 48),
+            ('VIA', 'Viacoin', 71),
             ('DOGE', 'Dogecoin', 30),
             ('DASH', 'Dash', 76),
             ('ZEC', 'Zcash', 7352),
