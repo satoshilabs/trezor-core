@@ -9,7 +9,7 @@ BROWSER="${BROWSER:-chromium}"
 if file $EXE | grep -q 80386 ; then
 HEAPSIZE="${HEAPSIZE:-163K}"
 else
-HEAPSIZE="${HEAPSIZE:-326K}"
+HEAPSIZE="${HEAPSIZE:-400K}"
 fi
 
 ARGS="-O${OPTLEVEL} -X heapsize=${HEAPSIZE}"

@@ -2,7 +2,7 @@
 import protobuf as p
 
 
-class EthereumSignTx(p.MessageType):
+class WanchainSignTx(p.MessageType):
     FIELDS = {
         1: ('address_n', p.UVarintType, p.FLAG_REPEATED),
         2: ('txtype', p.BytesType, 0),
@@ -15,7 +15,7 @@ class EthereumSignTx(p.MessageType):
         9: ('data_length', p.UVarintType, 0),
         10: ('chain_id', p.UVarintType, 0),
     }
-    MESSAGE_WIRE_TYPE = 58
+    MESSAGE_WIRE_TYPE = 114
 
     def __init__(
         self,
