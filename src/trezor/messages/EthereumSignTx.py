@@ -5,22 +5,20 @@ import protobuf as p
 class EthereumSignTx(p.MessageType):
     FIELDS = {
         1: ('address_n', p.UVarintType, p.FLAG_REPEATED),
-        2: ('txtype', p.BytesType, 0),
-        3: ('nonce', p.BytesType, 0),
-        4: ('gas_price', p.BytesType, 0),
-        5: ('gas_limit', p.BytesType, 0),
-        6: ('to', p.BytesType, 0),
-        7: ('value', p.BytesType, 0),
-        8: ('data_initial_chunk', p.BytesType, 0),
-        9: ('data_length', p.UVarintType, 0),
-        10: ('chain_id', p.UVarintType, 0),
+        2: ('nonce', p.BytesType, 0),
+        3: ('gas_price', p.BytesType, 0),
+        4: ('gas_limit', p.BytesType, 0),
+        5: ('to', p.BytesType, 0),
+        6: ('value', p.BytesType, 0),
+        7: ('data_initial_chunk', p.BytesType, 0),
+        8: ('data_length', p.UVarintType, 0),
+        9: ('chain_id', p.UVarintType, 0),
     }
     MESSAGE_WIRE_TYPE = 58
 
     def __init__(
         self,
         address_n: list = None,
-        txtype: bytes = None,
         nonce: bytes = None,
         gas_price: bytes = None,
         gas_limit: bytes = None,
@@ -32,7 +30,6 @@ class EthereumSignTx(p.MessageType):
         **kwargs,
     ):
         self.address_n = [] if address_n is None else address_n
-        self.txtype = txtype
         self.nonce = nonce
         self.gas_price = gas_price
         self.gas_limit = gas_limit
