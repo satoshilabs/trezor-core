@@ -1,6 +1,5 @@
 from micropython import const
 
-import sys
 import math
 import utime
 
@@ -10,11 +9,12 @@ from trezor import io
 from trezor import loop
 from trezor import res
 from trezor import workflow
+from trezor.utils import model
 
 display = Display()
 
 # for desktop platforms, we need to refresh the display after each frame
-if sys.platform != 'trezor':
+if model() == 'EMU':
     loop.after_step_hook = display.refresh
 
 # import constants from modtrezorui
@@ -57,11 +57,11 @@ def rotate(pos: tuple) -> tuple:
         return pos
     x, y = pos
     if r == 90:
-        return (y, 240 - x)
+        return (y, WIDTH - x)
     if r == 180:
-        return (240 - x, 240 - y)
+        return (WIDTH - x, HEIGHT - y)
     if r == 270:
-        return (240 - y, x)
+        return (HEIGHT - y, x)
 
 
 def pulse(delay: int):
@@ -124,11 +124,11 @@ def layout(f):
 
 def header(title: str,
            icon: bytes=ICON_DEFAULT,
-           fg: int=BG,
+           fg: int=FG,
            bg: int=BG,
-           ifg: int=BG):
+           ifg: int=GREEN):
     if icon is not None:
-        display.icon(14, 17, res.load(icon), ifg, bg)
+        display.icon(14, 15, res.load(icon), ifg, bg)
     display.text(44, 35, title, BOLD, fg, bg)
 
 

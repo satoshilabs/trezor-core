@@ -24,7 +24,7 @@ async def recovery_device(ctx, msg):
     4. Optionally ask for the PIN, with confirmation.
     5. Save into storage.
     '''
-    if storage.is_initialized():
+    if not msg.dry_run and storage.is_initialized():
         raise wire.FailureError(UnexpectedMessage, 'Already initialized')
 
     # ask for the number of words
@@ -34,7 +34,7 @@ async def recovery_device(ctx, msg):
     mnemonic = await request_mnemonic(ctx, wordcount)
 
     # check mnemonic validity
-    if msg.enforce_wordlist:
+    if msg.enforce_wordlist or msg.dry_run:
         if not bip39.check(mnemonic):
             raise wire.FailureError(ProcessError, 'Mnemonic is not valid')
 
@@ -50,8 +50,12 @@ async def recovery_device(ctx, msg):
             label=msg.label, use_passphrase=msg.passphrase_protection)
         storage.load_mnemonic(
             mnemonic=mnemonic, needs_backup=False)
-
-    return Success()
+        return Success(message='Device recovered')
+    else:
+        if storage.get_mnemonic() == mnemonic:
+            return Success(message='The seed is valid and matches the one in the device')
+        else:
+            raise wire.FailureError(ProcessError, 'The seed is valid but does not match the one in the device')
 
 
 @ui.layout
@@ -60,7 +64,7 @@ async def request_wordcount(ctx):
 
     content = Text('Device recovery', ui.ICON_RECOVERY, 'Number of words?')
     select = WordSelector(content)
-    count = await select
+    count = await ctx.wait(select)
 
     return count
 
@@ -73,7 +77,7 @@ async def request_mnemonic(ctx, count: int) -> str:
     board = MnemonicKeyboard()
     for i in range(count):
         board.prompt = 'Type the %s word:' % format_ordinal(i + 1)
-        word = await board
+        word = await ctx.wait(board)
         words.append(word)
 
     return ' '.join(words)

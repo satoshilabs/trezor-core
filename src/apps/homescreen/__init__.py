@@ -1,5 +1,5 @@
 from trezor import config
-from trezor.utils import unimport, symbol
+from trezor.utils import unimport, symbol, model
 from trezor.wire import register, protobuf_workflow
 from trezor.messages import wire_types
 from trezor.messages.Features import Features
@@ -11,7 +11,7 @@ from apps.common import storage, coins, cache
 async def respond_Features(ctx, msg):
 
     if msg.__qualname__ == 'Initialize':
-        if msg.state is None or msg.state != cache.get_state(salt=msg.state[:32]):
+        if msg.state is None or bytes(msg.state) != cache.get_state(state=bytes(msg.state)):
             cache.clear()
 
     f = Features()
@@ -31,8 +31,8 @@ async def respond_Features(ctx, msg):
     f.passphrase_cached = cache.has_passphrase()
     f.needs_backup = storage.needs_backup()
     f.flags = storage.get_flags()
-    f.model = 'T'
-    f.state = cache.get_state()
+    if model() in ['T', 'EMU']:  # emulator currently emulates model T
+        f.model = 'T'
 
     return f
 
@@ -56,7 +56,7 @@ async def respond_Pong(ctx, msg):
         from apps.common.request_passphrase import protect_by_passphrase
         await protect_by_passphrase(ctx)
 
-    return Success(messge=msg.message)
+    return Success(message=msg.message)
 
 
 def boot():

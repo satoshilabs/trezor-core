@@ -19,9 +19,9 @@ async def confirm(ctx, content, code=None, *args, **kwargs):
     dialog = ConfirmDialog(content, *args, **kwargs)
 
     if __debug__:
-        waiter = loop.wait(signal, dialog)
+        waiter = ctx.wait(signal, dialog)
     else:
-        waiter = dialog
+        waiter = ctx.wait(dialog)
     return await waiter == CONFIRMED
 
 
@@ -34,13 +34,19 @@ async def hold_to_confirm(ctx, content, code=None, *args, **kwargs):
     dialog = HoldToConfirmDialog(content, 'Hold to confirm', *args, **kwargs)
 
     if __debug__:
-        waiter = loop.wait(signal, dialog)
+        waiter = ctx.wait(signal, dialog)
     else:
-        waiter = dialog
+        waiter = ctx.wait(dialog)
     return await waiter == CONFIRMED
 
 
 async def require_confirm(*args, **kwargs):
     confirmed = await confirm(*args, **kwargs)
+    if not confirmed:
+        raise wire.FailureError(FailureType.ActionCancelled, 'Cancelled')
+
+
+async def require_hold_to_confirm(*args, **kwargs):
+    confirmed = await hold_to_confirm(*args, **kwargs)
     if not confirmed:
         raise wire.FailureError(FailureType.ActionCancelled, 'Cancelled')

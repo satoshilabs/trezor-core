@@ -22,7 +22,7 @@ async def get_address(ctx, msg):
         while True:
             if await _show_address(ctx, address):
                 break
-            if await _show_qr(ctx, address, msg.script_type):
+            if await _show_qr(ctx, address.upper() if msg.script_type == InputScriptType.SPENDWITNESS else address):
                 break
 
     return Address(address=address)
@@ -30,7 +30,7 @@ async def get_address(ctx, msg):
 
 async def _show_address(ctx, address: str):
     lines = _split_address(address)
-    content = Text('Confirm address', ui.ICON_DEFAULT, ui.MONO, *lines)
+    content = Text('Confirm address', ui.ICON_RECEIVE, ui.MONO, *lines, icon_color=ui.GREEN)
     return await confirm(
         ctx,
         content,
@@ -39,17 +39,14 @@ async def _show_address(ctx, address: str):
         cancel_style=ui.BTN_KEY)
 
 
-async def _show_qr(ctx, address: str, script_type: int):
+async def _show_qr(ctx, address: str):
     qr_x = const(120)
     qr_y = const(115)
     qr_coef = const(4)
 
-    if script_type == InputScriptType.SPENDWITNESS:
-        address = address.upper()
-
     content = Container(
         Qr(address, (qr_x, qr_y), qr_coef),
-        Text('Confirm address', ui.ICON_DEFAULT, ui.MONO))
+        Text('Confirm address', ui.ICON_RECEIVE, ui.MONO, icon_color=ui.GREEN))
     return await confirm(
         ctx,
         content,

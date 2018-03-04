@@ -1,7 +1,7 @@
 import sys
 import gc
 
-from trezorutils import halt, memcpy, set_mode_unprivileged, symbol  # noqa: F401
+from trezorutils import halt, memcpy, set_mode_unprivileged, symbol, model  # noqa: F401
 
 
 def unimport(genfunc):
@@ -18,9 +18,12 @@ def unimport(genfunc):
     return inner
 
 
-def ensure(cond):
+def ensure(cond, msg=None):
     if not cond:
-        raise AssertionError()
+        if msg is None:
+            raise AssertionError()
+        else:
+            raise AssertionError(msg)
 
 
 def chunks(items, size):
