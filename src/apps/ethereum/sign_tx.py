@@ -46,6 +46,9 @@ async def ethereum_sign_tx(ctx, msg):
     sha = HashWriter(sha3_256)
     sha.extend(rlp.encode_length(total_length, True))  # total length
 
+    if not msg.tx_type is None:
+        sha.extend(rlp.encode(msg.tx_type))
+
     for field in [msg.nonce, msg.gas_price, msg.gas_limit, msg.to, msg.value]:
         sha.extend(rlp.encode(field))
 
@@ -72,6 +75,9 @@ async def ethereum_sign_tx(ctx, msg):
 
 def get_total_length(msg: EthereumSignTx, data_total: int) -> int:
     length = 0
+    if not msg.tx_type is None:
+        length += rlp.field_length(len(msg.tx_type), msg.tx_type[:1])
+
     for field in [msg.nonce, msg.gas_price, msg.gas_limit, msg.to, msg.value]:
         length += rlp.field_length(len(field), field[:1])
 
