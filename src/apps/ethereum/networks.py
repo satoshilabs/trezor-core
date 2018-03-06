@@ -12,5 +12,8 @@ suffixes = {
 }
 
 
-def suffix_by_chain_id(chain_id):
-    return suffixes.get(chain_id, 'UNKN')
+def suffix_by_chain_id(chain_id, tx_type=None):
+    if tx_type==bytearray(b'\x01') and chain_id==1:
+        return"WAN"
+    else:
+        return suffixes.get(chain_id, 'UNKN')

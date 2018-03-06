@@ -31,11 +31,11 @@ async def ethereum_sign_tx(ctx, msg):
         recipient = msg.data_initial_chunk[16:36]
         value = int.from_bytes(msg.data_initial_chunk[36:68], 'big')
 
-    await require_confirm_tx(ctx, recipient, value, msg.chain_id, token)
+    await require_confirm_tx(ctx, recipient, value, msg.chain_id, token, msg.tx_type)
     if token is None and msg.data_length > 0:
         await require_confirm_data(ctx, msg.data_initial_chunk, data_total)
 
-    await require_confirm_fee(ctx, value, int.from_bytes(msg.gas_price, 'big'), int.from_bytes(msg.gas_limit, 'big'), msg.chain_id, token)
+    await require_confirm_fee(ctx, value, int.from_bytes(msg.gas_price, 'big'), int.from_bytes(msg.gas_limit, 'big'), msg.chain_id, token, msg.tx_type)
 
     data = bytearray()
     data += msg.data_initial_chunk
