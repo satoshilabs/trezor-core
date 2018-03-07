@@ -13,7 +13,7 @@ suffixes = {
 
 
 def suffix_by_chain_id(chain_id, tx_type=None):
-    if tx_type==bytearray(b'\x01') and chain_id==1:
+    if (tx_type==bytearray(b'\x01') or tx_type==bytearray(b'\x06')) and (chain_id==1 or chain_id==3):
         return"WAN"
     else:
         return suffixes.get(chain_id, 'UNKN')

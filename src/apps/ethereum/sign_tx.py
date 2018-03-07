@@ -129,6 +129,9 @@ def node_derive(root, address_n: list):
 
 
 def check(msg: EthereumSignTx):
+    if msg.tx_type not in [bytearray(b'\x01'), bytearray(b'\x01'), None]:
+        raise ValueError(FailureType.DataError, 'Txtype out of bounds')
+
     if msg.chain_id < 0 or msg.chain_id > MAX_CHAIN_ID:
         raise ValueError(FailureType.DataError, 'Chain id out of bounds')
 
