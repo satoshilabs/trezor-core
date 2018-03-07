@@ -13,7 +13,7 @@ class EthereumSignTx(p.MessageType):
         7: ('data_initial_chunk', p.BytesType, 0),
         8: ('data_length', p.UVarintType, 0),
         9: ('chain_id', p.UVarintType, 0),
-        10: ('tx_type', p.BytesType, 0),
+        10: ('tx_type', p.UVarintType, 0),
     }
     MESSAGE_WIRE_TYPE = 58
 
@@ -28,7 +28,7 @@ class EthereumSignTx(p.MessageType):
         data_initial_chunk: bytes = None,
         data_length: int = None,
         chain_id: int = None,
-        tx_type: bytes = None,
+        tx_type: int = None,
         **kwargs,
     ):
         self.address_n = [] if address_n is None else address_n
