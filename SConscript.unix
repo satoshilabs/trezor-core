@@ -239,7 +239,7 @@ env.Replace(
     AS='as',
     AR='ar',
     CC='gcc',
-    LINK='ld',
+    LINK='gcc',
     SIZE='size',
     STRIP='strip',
     OBJCOPY='objcopy', )
@@ -332,7 +332,4 @@ obj_program += env.Object(
 
 env.Depends(obj_program, qstr_generated)
 
-program = env.Command(
-    target='micropython',
-    source=obj_program,
-    action='$CC -o $TARGET $SOURCES $_LIBDIRFLAGS $_LIBFLAGS $LINKFLAGS', )
+env.Program('micropython', obj_program)
