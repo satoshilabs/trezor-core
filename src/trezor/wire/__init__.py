@@ -13,6 +13,9 @@ workflow_handlers = {}
 
 def register(mtype, handler, *args):
     '''Register `handler` to get scheduled after `mtype` message is received.'''
+    if type(mtype) is type and issubclass(mtype, protobuf.MessageType):
+        mtype = mtype.MESSAGE_WIRE_TYPE
+
     if mtype in workflow_handlers:
         raise KeyError
     workflow_handlers[mtype] = (handler, args)
