@@ -8,18 +8,16 @@ if __debug__:
 
 
 class EthereumSignMessage(p.MessageType):
+    MESSAGE_WIRE_TYPE = 64
     FIELDS = {
         1: ('address_n', p.UVarintType, p.FLAG_REPEATED),
         2: ('message', p.BytesType, 0),  # required
     }
-    MESSAGE_WIRE_TYPE = 64
 
     def __init__(
         self,
         address_n: List[int] = None,
-        message: bytes = None,
-        **kwargs
+        message: bytes = None
     ) -> None:
         self.address_n = address_n if address_n is not None else []
         self.message = message
-        super().__init__(**kwargs)

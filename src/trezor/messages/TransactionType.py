@@ -35,8 +35,7 @@ class TransactionType(p.MessageType):
         outputs_cnt: int = None,
         extra_data: bytes = None,
         extra_data_len: int = None,
-        decred_expiry: int = None,
-        **kwargs
+        decred_expiry: int = None
     ) -> None:
         self.version = version
         self.inputs = inputs if inputs is not None else []
@@ -48,4 +47,3 @@ class TransactionType(p.MessageType):
         self.extra_data = extra_data
         self.extra_data_len = extra_data_len
         self.decred_expiry = decred_expiry
-        super().__init__(**kwargs)

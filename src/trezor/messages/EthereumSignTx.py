@@ -8,6 +8,7 @@ if __debug__:
 
 
 class EthereumSignTx(p.MessageType):
+    MESSAGE_WIRE_TYPE = 58
     FIELDS = {
         1: ('address_n', p.UVarintType, p.FLAG_REPEATED),
         2: ('nonce', p.BytesType, 0),
@@ -20,7 +21,6 @@ class EthereumSignTx(p.MessageType):
         9: ('chain_id', p.UVarintType, 0),
         10: ('tx_type', p.UVarintType, 0),
     }
-    MESSAGE_WIRE_TYPE = 58
 
     def __init__(
         self,
@@ -33,8 +33,7 @@ class EthereumSignTx(p.MessageType):
         data_initial_chunk: bytes = None,
         data_length: int = None,
         chain_id: int = None,
-        tx_type: int = None,
-        **kwargs
+        tx_type: int = None
     ) -> None:
         self.address_n = address_n if address_n is not None else []
         self.nonce = nonce
@@ -46,4 +45,3 @@ class EthereumSignTx(p.MessageType):
         self.data_length = data_length
         self.chain_id = chain_id
         self.tx_type = tx_type
-        super().__init__(**kwargs)

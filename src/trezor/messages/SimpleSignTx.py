@@ -11,6 +11,7 @@ from .TxOutputType import TxOutputType
 
 
 class SimpleSignTx(p.MessageType):
+    MESSAGE_WIRE_TYPE = 16
     FIELDS = {
         1: ('inputs', TxInputType, p.FLAG_REPEATED),
         2: ('outputs', TxOutputType, p.FLAG_REPEATED),
@@ -19,7 +20,6 @@ class SimpleSignTx(p.MessageType):
         5: ('version', p.UVarintType, 0),  # default=1
         6: ('lock_time', p.UVarintType, 0),  # default=0
     }
-    MESSAGE_WIRE_TYPE = 16
 
     def __init__(
         self,
@@ -28,8 +28,7 @@ class SimpleSignTx(p.MessageType):
         transactions: List[TransactionType] = None,
         coin_name: str = None,
         version: int = None,
-        lock_time: int = None,
-        **kwargs
+        lock_time: int = None
     ) -> None:
         self.inputs = inputs if inputs is not None else []
         self.outputs = outputs if outputs is not None else []
@@ -37,4 +36,3 @@ class SimpleSignTx(p.MessageType):
         self.coin_name = coin_name
         self.version = version
         self.lock_time = lock_time
-        super().__init__(**kwargs)

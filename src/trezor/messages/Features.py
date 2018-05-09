@@ -9,6 +9,7 @@ from .CoinType import CoinType
 
 
 class Features(p.MessageType):
+    MESSAGE_WIRE_TYPE = 17
     FIELDS = {
         1: ('vendor', p.UnicodeType, 0),
         2: ('major_version', p.UVarintType, 0),
@@ -38,7 +39,6 @@ class Features(p.MessageType):
         26: ('fw_vendor_keys', p.BytesType, 0),
         27: ('unfinished_backup', p.BoolType, 0),
     }
-    MESSAGE_WIRE_TYPE = 17
 
     def __init__(
         self,
@@ -68,8 +68,7 @@ class Features(p.MessageType):
         fw_patch: int = None,
         fw_vendor: str = None,
         fw_vendor_keys: bytes = None,
-        unfinished_backup: bool = None,
-        **kwargs
+        unfinished_backup: bool = None
     ) -> None:
         self.vendor = vendor
         self.major_version = major_version
@@ -98,4 +97,3 @@ class Features(p.MessageType):
         self.fw_vendor = fw_vendor
         self.fw_vendor_keys = fw_vendor_keys
         self.unfinished_backup = unfinished_backup
-        super().__init__(**kwargs)

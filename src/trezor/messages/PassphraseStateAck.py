@@ -4,9 +4,3 @@ import protobuf as p
 
 class PassphraseStateAck(p.MessageType):
     MESSAGE_WIRE_TYPE = 78
-
-    def __init__(
-        self,
-        **kwargs
-    ) -> None:
-        super().__init__(**kwargs)

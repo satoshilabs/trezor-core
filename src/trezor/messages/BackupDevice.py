@@ -4,9 +4,3 @@ import protobuf as p
 
 class BackupDevice(p.MessageType):
     MESSAGE_WIRE_TYPE = 34
-
-    def __init__(
-        self,
-        **kwargs
-    ) -> None:
-        super().__init__(**kwargs)

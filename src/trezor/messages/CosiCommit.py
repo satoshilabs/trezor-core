@@ -8,18 +8,16 @@ if __debug__:
 
 
 class CosiCommit(p.MessageType):
+    MESSAGE_WIRE_TYPE = 71
     FIELDS = {
         1: ('address_n', p.UVarintType, p.FLAG_REPEATED),
         2: ('data', p.BytesType, 0),
     }
-    MESSAGE_WIRE_TYPE = 71
 
     def __init__(
         self,
         address_n: List[int] = None,
-        data: bytes = None,
-        **kwargs
+        data: bytes = None
     ) -> None:
         self.address_n = address_n if address_n is not None else []
         self.data = data
-        super().__init__(**kwargs)

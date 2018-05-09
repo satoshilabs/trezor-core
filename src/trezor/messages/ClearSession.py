@@ -4,9 +4,3 @@ import protobuf as p
 
 class ClearSession(p.MessageType):
     MESSAGE_WIRE_TYPE = 24
-
-    def __init__(
-        self,
-        **kwargs
-    ) -> None:
-        super().__init__(**kwargs)

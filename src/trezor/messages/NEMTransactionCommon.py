@@ -24,8 +24,7 @@ class NEMTransactionCommon(p.MessageType):
         timestamp: int = None,
         fee: int = None,
         deadline: int = None,
-        signer: bytes = None,
-        **kwargs
+        signer: bytes = None
     ) -> None:
         self.address_n = address_n if address_n is not None else []
         self.network = network
@@ -33,4 +32,3 @@ class NEMTransactionCommon(p.MessageType):
         self.fee = fee
         self.deadline = deadline
         self.signer = signer
-        super().__init__(**kwargs)

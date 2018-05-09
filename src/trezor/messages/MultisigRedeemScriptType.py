@@ -19,10 +19,8 @@ class MultisigRedeemScriptType(p.MessageType):
         self,
         pubkeys: List[HDNodePathType] = None,
         signatures: List[bytes] = None,
-        m: int = None,
-        **kwargs
+        m: int = None
     ) -> None:
         self.pubkeys = pubkeys if pubkeys is not None else []
         self.signatures = signatures if signatures is not None else []
         self.m = m
-        super().__init__(**kwargs)

@@ -9,6 +9,7 @@ from .MultisigRedeemScriptType import MultisigRedeemScriptType
 
 
 class GetAddress(p.MessageType):
+    MESSAGE_WIRE_TYPE = 29
     FIELDS = {
         1: ('address_n', p.UVarintType, p.FLAG_REPEATED),
         2: ('coin_name', p.UnicodeType, 0),  # default='Bitcoin'
@@ -16,7 +17,6 @@ class GetAddress(p.MessageType):
         4: ('multisig', MultisigRedeemScriptType, 0),
         5: ('script_type', p.UVarintType, 0),  # default=0
     }
-    MESSAGE_WIRE_TYPE = 29
 
     def __init__(
         self,
@@ -24,12 +24,10 @@ class GetAddress(p.MessageType):
         coin_name: str = None,
         show_display: bool = None,
         multisig: MultisigRedeemScriptType = None,
-        script_type: int = None,
-        **kwargs
+        script_type: int = None
     ) -> None:
         self.address_n = address_n if address_n is not None else []
         self.coin_name = coin_name
         self.show_display = show_display
         self.multisig = multisig
         self.script_type = script_type
-        super().__init__(**kwargs)

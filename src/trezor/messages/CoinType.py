@@ -29,8 +29,7 @@ class CoinType(p.MessageType):
         xprv_magic: int = None,
         segwit: bool = None,
         forkid: int = None,
-        force_bip143: bool = None,
-        **kwargs
+        force_bip143: bool = None
     ) -> None:
         self.coin_name = coin_name
         self.coin_shortcut = coin_shortcut
@@ -43,4 +42,3 @@ class CoinType(p.MessageType):
         self.segwit = segwit
         self.forkid = forkid
         self.force_bip143 = force_bip143
-        super().__init__(**kwargs)

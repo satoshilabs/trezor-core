@@ -33,8 +33,7 @@ class TxInputType(p.MessageType):
         multisig: MultisigRedeemScriptType = None,
         amount: int = None,
         decred_tree: int = None,
-        decred_script_version: int = None,
-        **kwargs
+        decred_script_version: int = None
     ) -> None:
         self.address_n = address_n if address_n is not None else []
         self.prev_hash = prev_hash
@@ -46,4 +45,3 @@ class TxInputType(p.MessageType):
         self.amount = amount
         self.decred_tree = decred_tree
         self.decred_script_version = decred_script_version
-        super().__init__(**kwargs)
