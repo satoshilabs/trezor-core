@@ -7,6 +7,6 @@ class EntropyRequest(p.MessageType):
 
     def __init__(
         self,
-        **kwargs,
-    ):
-        p.MessageType.__init__(self, **kwargs)
+        **kwargs
+    ) -> None:
+        super().__init__(**kwargs)

@@ -11,7 +11,7 @@ class WordAck(p.MessageType):
     def __init__(
         self,
         word: str = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.word = word
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

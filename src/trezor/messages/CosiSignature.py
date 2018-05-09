@@ -11,7 +11,7 @@ class CosiSignature(p.MessageType):
     def __init__(
         self,
         signature: bytes = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.signature = signature
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

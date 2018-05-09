@@ -11,7 +11,7 @@ class Success(p.MessageType):
     def __init__(
         self,
         message: str = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.message = message
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

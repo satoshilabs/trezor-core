@@ -14,9 +14,9 @@ class NEMMosaic(p.MessageType):
         namespace: str = None,
         mosaic: str = None,
         quantity: int = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.namespace = namespace
         self.mosaic = mosaic
         self.quantity = quantity
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

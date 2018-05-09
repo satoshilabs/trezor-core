@@ -11,7 +11,7 @@ class PinMatrixAck(p.MessageType):
     def __init__(
         self,
         pin: str = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.pin = pin
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

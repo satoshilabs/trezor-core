@@ -13,8 +13,8 @@ class DebugLinkMemoryRead(p.MessageType):
         self,
         address: int = None,
         length: int = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.address = address
         self.length = length
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

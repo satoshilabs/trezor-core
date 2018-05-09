@@ -15,9 +15,9 @@ class DebugLinkDecision(p.MessageType):
         yes_no: bool = None,
         up_down: bool = None,
         input: str = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.yes_no = yes_no
         self.up_down = up_down
         self.input = input
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

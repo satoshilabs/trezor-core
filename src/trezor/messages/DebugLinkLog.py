@@ -15,9 +15,9 @@ class DebugLinkLog(p.MessageType):
         level: int = None,
         bucket: str = None,
         text: str = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.level = level
         self.bucket = bucket
         self.text = text
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

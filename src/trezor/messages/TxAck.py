@@ -12,7 +12,7 @@ class TxAck(p.MessageType):
     def __init__(
         self,
         tx: TransactionType = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.tx = tx
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

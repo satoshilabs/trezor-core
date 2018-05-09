@@ -11,7 +11,7 @@ class CipheredKeyValue(p.MessageType):
     def __init__(
         self,
         value: bytes = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.value = value
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

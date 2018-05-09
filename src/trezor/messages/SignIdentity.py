@@ -18,10 +18,10 @@ class SignIdentity(p.MessageType):
         challenge_hidden: bytes = None,
         challenge_visual: str = None,
         ecdsa_curve_name: str = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.identity = identity
         self.challenge_hidden = challenge_hidden
         self.challenge_visual = challenge_visual
         self.ecdsa_curve_name = ecdsa_curve_name
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

@@ -11,7 +11,7 @@ class Entropy(p.MessageType):
     def __init__(
         self,
         entropy: bytes = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.entropy = entropy
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

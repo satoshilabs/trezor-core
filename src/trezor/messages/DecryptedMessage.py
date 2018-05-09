@@ -13,8 +13,8 @@ class DecryptedMessage(p.MessageType):
         self,
         message: bytes = None,
         address: str = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.message = message
         self.address = address
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

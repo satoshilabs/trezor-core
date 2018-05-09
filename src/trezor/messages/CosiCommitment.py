@@ -13,8 +13,8 @@ class CosiCommitment(p.MessageType):
         self,
         commitment: bytes = None,
         pubkey: bytes = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.commitment = commitment
         self.pubkey = pubkey
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

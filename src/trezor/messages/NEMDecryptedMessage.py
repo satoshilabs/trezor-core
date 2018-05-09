@@ -11,7 +11,7 @@ class NEMDecryptedMessage(p.MessageType):
     def __init__(
         self,
         payload: bytes = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.payload = payload
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

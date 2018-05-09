@@ -32,8 +32,8 @@ class DebugLinkState(p.MessageType):
         recovery_fake_word: str = None,
         recovery_word_pos: int = None,
         reset_word_pos: int = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.layout = layout
         self.pin = pin
         self.matrix = matrix
@@ -45,4 +45,4 @@ class DebugLinkState(p.MessageType):
         self.recovery_fake_word = recovery_fake_word
         self.recovery_word_pos = recovery_word_pos
         self.reset_word_pos = reset_word_pos
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

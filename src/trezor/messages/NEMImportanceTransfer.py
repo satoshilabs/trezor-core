@@ -12,8 +12,8 @@ class NEMImportanceTransfer(p.MessageType):
         self,
         mode: int = None,
         public_key: bytes = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.mode = mode
         self.public_key = public_key
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

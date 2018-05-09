@@ -15,9 +15,9 @@ class EncryptedMessage(p.MessageType):
         nonce: bytes = None,
         message: bytes = None,
         hmac: bytes = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.nonce = nonce
         self.message = message
         self.hmac = hmac
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

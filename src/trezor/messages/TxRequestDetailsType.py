@@ -16,10 +16,10 @@ class TxRequestDetailsType(p.MessageType):
         tx_hash: bytes = None,
         extra_data_len: int = None,
         extra_data_offset: int = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.request_index = request_index
         self.tx_hash = tx_hash
         self.extra_data_len = extra_data_len
         self.extra_data_offset = extra_data_offset
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

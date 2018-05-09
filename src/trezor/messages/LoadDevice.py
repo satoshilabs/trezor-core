@@ -26,8 +26,8 @@ class LoadDevice(p.MessageType):
         label: str = None,
         skip_checksum: bool = None,
         u2f_counter: int = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.mnemonic = mnemonic
         self.node = node
         self.pin = pin
@@ -36,4 +36,4 @@ class LoadDevice(p.MessageType):
         self.label = label
         self.skip_checksum = skip_checksum
         self.u2f_counter = u2f_counter
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

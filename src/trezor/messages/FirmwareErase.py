@@ -11,7 +11,7 @@ class FirmwareErase(p.MessageType):
     def __init__(
         self,
         length: int = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.length = length
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

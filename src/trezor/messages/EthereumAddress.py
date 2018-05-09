@@ -11,7 +11,7 @@ class EthereumAddress(p.MessageType):
     def __init__(
         self,
         address: bytes = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.address = address
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

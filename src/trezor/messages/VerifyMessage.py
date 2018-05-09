@@ -17,10 +17,10 @@ class VerifyMessage(p.MessageType):
         signature: bytes = None,
         message: bytes = None,
         coin_name: str = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.address = address
         self.signature = signature
         self.message = message
         self.coin_name = coin_name
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

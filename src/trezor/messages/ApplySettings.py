@@ -19,11 +19,11 @@ class ApplySettings(p.MessageType):
         use_passphrase: bool = None,
         homescreen: bytes = None,
         passphrase_source: int = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.language = language
         self.label = label
         self.use_passphrase = use_passphrase
         self.homescreen = homescreen
         self.passphrase_source = passphrase_source
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

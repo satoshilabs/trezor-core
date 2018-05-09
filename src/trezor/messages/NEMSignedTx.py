@@ -13,8 +13,8 @@ class NEMSignedTx(p.MessageType):
         self,
         data: bytes = None,
         signature: bytes = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.data = data
         self.signature = signature
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

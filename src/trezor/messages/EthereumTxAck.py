@@ -11,7 +11,7 @@ class EthereumTxAck(p.MessageType):
     def __init__(
         self,
         data_chunk: bytes = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.data_chunk = data_chunk
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

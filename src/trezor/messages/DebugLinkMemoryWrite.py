@@ -15,9 +15,9 @@ class DebugLinkMemoryWrite(p.MessageType):
         address: int = None,
         memory: bytes = None,
         flash: bool = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.address = address
         self.memory = memory
         self.flash = flash
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

@@ -13,8 +13,8 @@ class MessageSignature(p.MessageType):
         self,
         address: str = None,
         signature: bytes = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.address = address
         self.signature = signature
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

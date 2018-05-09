@@ -16,10 +16,10 @@ class NEMMosaicSupplyChange(p.MessageType):
         mosaic: str = None,
         type: int = None,
         delta: int = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.namespace = namespace
         self.mosaic = mosaic
         self.type = type
         self.delta = delta
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

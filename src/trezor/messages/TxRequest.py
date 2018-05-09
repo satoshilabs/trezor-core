@@ -17,9 +17,9 @@ class TxRequest(p.MessageType):
         request_type: int = None,
         details: TxRequestDetailsType = None,
         serialized: TxRequestSerializedType = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.request_type = request_type
         self.details = details
         self.serialized = serialized
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

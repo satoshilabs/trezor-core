@@ -17,10 +17,10 @@ class EthereumTxRequest(p.MessageType):
         signature_v: int = None,
         signature_r: bytes = None,
         signature_s: bytes = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.data_length = data_length
         self.signature_v = signature_v
         self.signature_r = signature_r
         self.signature_s = signature_s
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

@@ -14,8 +14,8 @@ class PublicKey(p.MessageType):
         self,
         node: HDNodeType = None,
         xpub: str = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.node = node
         self.xpub = xpub
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

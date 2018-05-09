@@ -11,7 +11,7 @@ class TxSize(p.MessageType):
     def __init__(
         self,
         tx_size: int = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.tx_size = tx_size
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

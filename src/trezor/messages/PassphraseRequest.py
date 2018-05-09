@@ -11,7 +11,7 @@ class PassphraseRequest(p.MessageType):
     def __init__(
         self,
         on_device: bool = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.on_device = on_device
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

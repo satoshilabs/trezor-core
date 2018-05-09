@@ -13,8 +13,8 @@ class FirmwareRequest(p.MessageType):
         self,
         offset: int = None,
         length: int = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.offset = offset
         self.length = length
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

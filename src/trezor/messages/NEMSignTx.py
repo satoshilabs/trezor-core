@@ -34,8 +34,8 @@ class NEMSignTx(p.MessageType):
         supply_change: NEMMosaicSupplyChange = None,
         aggregate_modification: NEMAggregateModification = None,
         importance_transfer: NEMImportanceTransfer = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.transaction = transaction
         self.multisig = multisig
         self.transfer = transfer
@@ -45,4 +45,4 @@ class NEMSignTx(p.MessageType):
         self.supply_change = supply_change
         self.aggregate_modification = aggregate_modification
         self.importance_transfer = importance_transfer
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

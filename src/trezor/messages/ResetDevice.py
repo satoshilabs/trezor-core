@@ -25,8 +25,8 @@ class ResetDevice(p.MessageType):
         label: str = None,
         u2f_counter: int = None,
         skip_backup: bool = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.display_random = display_random
         self.strength = strength
         self.passphrase_protection = passphrase_protection
@@ -35,4 +35,4 @@ class ResetDevice(p.MessageType):
         self.label = label
         self.u2f_counter = u2f_counter
         self.skip_backup = skip_backup
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

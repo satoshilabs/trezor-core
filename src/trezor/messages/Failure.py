@@ -13,8 +13,8 @@ class Failure(p.MessageType):
         self,
         code: int = None,
         message: str = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.code = code
         self.message = message
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

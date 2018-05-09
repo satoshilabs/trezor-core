@@ -11,7 +11,7 @@ class SetU2FCounter(p.MessageType):
     def __init__(
         self,
         u2f_counter: int = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.u2f_counter = u2f_counter
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

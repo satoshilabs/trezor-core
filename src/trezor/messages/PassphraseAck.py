@@ -13,8 +13,8 @@ class PassphraseAck(p.MessageType):
         self,
         passphrase: str = None,
         state: bytes = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.passphrase = passphrase
         self.state = state
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

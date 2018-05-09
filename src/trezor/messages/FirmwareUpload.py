@@ -13,8 +13,8 @@ class FirmwareUpload(p.MessageType):
         self,
         payload: bytes = None,
         hash: bytes = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.payload = payload
         self.hash = hash
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

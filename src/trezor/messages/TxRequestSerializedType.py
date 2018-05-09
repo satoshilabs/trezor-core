@@ -14,9 +14,9 @@ class TxRequestSerializedType(p.MessageType):
         signature_index: int = None,
         signature: bytes = None,
         serialized_tx: bytes = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.signature_index = signature_index
         self.signature = signature
         self.serialized_tx = serialized_tx
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

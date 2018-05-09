@@ -27,8 +27,8 @@ class RecoveryDevice(p.MessageType):
         type: int = None,
         u2f_counter: int = None,
         dry_run: bool = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.word_count = word_count
         self.passphrase_protection = passphrase_protection
         self.pin_protection = pin_protection
@@ -38,4 +38,4 @@ class RecoveryDevice(p.MessageType):
         self.type = type
         self.u2f_counter = u2f_counter
         self.dry_run = dry_run
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

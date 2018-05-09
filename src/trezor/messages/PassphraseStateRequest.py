@@ -11,7 +11,7 @@ class PassphraseStateRequest(p.MessageType):
     def __init__(
         self,
         state: bytes = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.state = state
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

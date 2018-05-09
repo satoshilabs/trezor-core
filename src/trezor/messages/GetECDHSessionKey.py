@@ -16,9 +16,9 @@ class GetECDHSessionKey(p.MessageType):
         identity: IdentityType = None,
         peer_public_key: bytes = None,
         ecdsa_curve_name: str = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.identity = identity
         self.peer_public_key = peer_public_key
         self.ecdsa_curve_name = ecdsa_curve_name
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

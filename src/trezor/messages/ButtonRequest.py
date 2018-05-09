@@ -13,8 +13,8 @@ class ButtonRequest(p.MessageType):
         self,
         code: int = None,
         data: str = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.code = code
         self.data = data
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

@@ -11,7 +11,7 @@ class PinMatrixRequest(p.MessageType):
     def __init__(
         self,
         type: int = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.type = type
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

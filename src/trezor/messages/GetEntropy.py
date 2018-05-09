@@ -11,7 +11,7 @@ class GetEntropy(p.MessageType):
     def __init__(
         self,
         size: int = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.size = size
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

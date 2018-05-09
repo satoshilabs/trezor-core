@@ -11,7 +11,7 @@ class ApplyFlags(p.MessageType):
     def __init__(
         self,
         flags: int = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.flags = flags
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

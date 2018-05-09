@@ -15,9 +15,9 @@ class EstimateTxSize(p.MessageType):
         outputs_count: int = None,
         inputs_count: int = None,
         coin_name: str = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.outputs_count = outputs_count
         self.inputs_count = inputs_count
         self.coin_name = coin_name
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

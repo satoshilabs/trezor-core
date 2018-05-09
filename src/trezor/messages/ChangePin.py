@@ -11,7 +11,7 @@ class ChangePin(p.MessageType):
     def __init__(
         self,
         remove: bool = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.remove = remove
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

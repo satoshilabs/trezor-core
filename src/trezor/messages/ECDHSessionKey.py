@@ -11,7 +11,7 @@ class ECDHSessionKey(p.MessageType):
     def __init__(
         self,
         session_key: bytes = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.session_key = session_key
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

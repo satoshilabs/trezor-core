@@ -11,7 +11,7 @@ class DebugLinkMemory(p.MessageType):
     def __init__(
         self,
         memory: bytes = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.memory = memory
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

@@ -20,12 +20,12 @@ class IdentityType(p.MessageType):
         port: str = None,
         path: str = None,
         index: int = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.proto = proto
         self.user = user
         self.host = host
         self.port = port
         self.path = path
         self.index = index
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)

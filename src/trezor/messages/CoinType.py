@@ -30,8 +30,8 @@ class CoinType(p.MessageType):
         segwit: bool = None,
         forkid: int = None,
         force_bip143: bool = None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> None:
         self.coin_name = coin_name
         self.coin_shortcut = coin_shortcut
         self.address_type = address_type
@@ -43,4 +43,4 @@ class CoinType(p.MessageType):
         self.segwit = segwit
         self.forkid = forkid
         self.force_bip143 = force_bip143
-        p.MessageType.__init__(self, **kwargs)
+        super().__init__(**kwargs)
