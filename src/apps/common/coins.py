@@ -1,4 +1,15 @@
-from trezor.messages.CoinType import CoinType
+from trezor.messages.CoinType import CoinType as CoinType_proto
+
+
+class CoinType(CoinType_proto):
+    """Subclass of the protobuf CoinType that holds additionals off-wire properties."""
+
+    def __init__(self, **kwargs):
+        # XXX this should take an explicit list of arguments
+        super().__init__()
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
 
 # the following list is generated using tools/codegen/gen_coins.py
 # do not edit manually!
