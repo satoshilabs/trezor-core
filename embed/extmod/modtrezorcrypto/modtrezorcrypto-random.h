@@ -26,7 +26,7 @@
 ///     Compute uniform random number from interval 0 ... n - 1.
 ///     '''
 STATIC mp_obj_t mod_trezorcrypto_random_uniform(mp_obj_t n) {
-    uint32_t nn = mp_obj_get_int_truncated(n);
+    uint32_t nn = mp_obj_int_get_checked(n);
     if (nn == 0) {
         mp_raise_ValueError("Maximum can't be zero");
     }
