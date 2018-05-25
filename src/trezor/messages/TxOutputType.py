@@ -27,8 +27,13 @@ class TxOutputType(p.MessageType):
         script_type: int = None,
         multisig: MultisigRedeemScriptType = None,
         op_return_data: bytes = None,
-        decred_script_version: int = None
-    ) -> None:
+        decred_script_version: int = None,
+        block_hash: bytes = None,
+        block_height: bytes = None,
+        **kwargs,
+    ):
+        default_block_hash = b'\x54\x52\xf0\x3c\x7a\xf4\x6d\xf1\x58\xf6\xa6\xfe\x2f\xe9\x49\x49\x66\xed\xc7\x43\x40\x27\xaf\x26\x51\xa3\x88\x0e\x00\x00\x00\x00'  #Zencash 
+        default_block_height = b'\x4E\x59\x04' #Zencash
         self.address = address
         self.address_n = address_n if address_n is not None else []
         self.amount = amount
@@ -36,3 +41,6 @@ class TxOutputType(p.MessageType):
         self.multisig = multisig
         self.op_return_data = op_return_data
         self.decred_script_version = decred_script_version
+        self.block_hash = default_block_hash if block_hash is None else block_hash
+        self.block_height = default_block_height if block_height is None else block_height
+        p.MessageType.__init__(self, **kwargs)
