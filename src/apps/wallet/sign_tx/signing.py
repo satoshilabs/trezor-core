@@ -14,14 +14,12 @@ from apps.common.coininfo import CoinInfo
 from apps.wallet.sign_tx.addresses import *
 from apps.wallet.sign_tx.helpers import *
 from apps.wallet.sign_tx.scripts import *
-<<<<<<< HEAD
-=======
-from apps.wallet.sign_tx.scripts import output_script_replay_protection
->>>>>>> 247d35a... Code refactoring
 from apps.wallet.sign_tx.segwit_bip143 import *
 from apps.wallet.sign_tx.tx_weight_calculator import *
 from apps.wallet.sign_tx.writers import *
 from apps.wallet.sign_tx import progress
+
+from apps.wallet.sign_tx.scripts import output_script_replay_protection
 
 
 # the number of bip32 levels used in a wallet (chain and address)
@@ -265,17 +263,12 @@ async def sign_tx(tx: SignTx, root: bip32.HDNode):
                             multisig_get_pubkeys(txi_sign.multisig),
                             txi_sign.multisig.m)
                     elif txi_sign.script_type == InputScriptType.SPENDADDRESS:
-<<<<<<< HEAD
-                        txi_sign.script_sig = output_script_p2pkh(
-                            ecdsa_hash_pubkey(key_sign_pub))
-=======
                         if coin.replay_protection:
                             txi_sign.script_sig = output_script_replay_protection(
                                 txi_sign.prev_input_script)
                         else:
                             txi_sign.script_sig = output_script_p2pkh(
                                 ecdsa_hash_pubkey(key_sign_pub))
->>>>>>> 247d35a... Code refactoring
                     else:
                         raise SigningError(FailureType.ProcessError,
                                            'Unknown transaction type')
@@ -536,7 +529,7 @@ def output_is_change(o: TxOutputType, wallet_path: list, segwit_in: int) -> bool
 # ===
 
 
-def input_derive_script(coin: CoinType, i: TxInputType, pubkey: bytes, signature: bytes=None) -> bytes:
+def input_derive_script(coin: CoinInfo, i: TxInputType, pubkey: bytes, signature: bytes=None) -> bytes:
     if i.script_type == InputScriptType.SPENDADDRESS:
         # p2pkh or p2sh
         return input_script_p2pkh_or_p2sh(
