@@ -26,12 +26,15 @@ async def ethereum_get_address(ctx, msg):
     return EthereumAddress(address=address)
 
 
-def _ethereum_address_hex(address):
+def _ethereum_address_hex(address, chain_id=None):
     from ubinascii import hexlify
     from trezor.crypto.hashlib import sha3_256
 
+    applying_chain_ids = [30, 31]
+
     hx = hexlify(address).decode()
-    hs = sha3_256(hx).digest(True)
+    prefix = str(chain_id) + '0x' if (chain_id in applying_chain_ids) else ''
+    hs = sha3_256(prefix + hx).digest(True)
     h = ''
 
     for i in range(20):
