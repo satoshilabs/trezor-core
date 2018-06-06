@@ -16,7 +16,12 @@ async def ethereum_get_address(ctx, msg):
     address = sha3_256(public_key[1:]).digest(True)[12:]  # Keccak
 
     if msg.show_display:
-        hex_addr = _ethereum_address_hex(address)
+        slip44_networks = { 137: 30, 37310: 31 }
+        slip44_network_id = address_n[1] - 2**31
+
+        chain_id = slip44_networks.get(slip44_network_id, 0)
+
+        hex_addr = _ethereum_address_hex(address, chain_id)
         while True:
             if await _show_address(ctx, hex_addr):
                 break
