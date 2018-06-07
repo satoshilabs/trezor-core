@@ -16,10 +16,7 @@ async def ethereum_get_address(ctx, msg):
     address = sha3_256(public_key[1:]).digest(True)[12:]  # Keccak
 
     if msg.show_display:
-        slip44_networks = { 137: 30, 37310: 31 }
-        slip44_network_id = address_n[1] - 2**31
-
-        chain_id = slip44_networks.get(slip44_network_id, 0)
+        chain_id = decode_chain_id(address_n)
 
         hex_addr = _ethereum_address_hex(address, chain_id)
         while True:
@@ -29,6 +26,13 @@ async def ethereum_get_address(ctx, msg):
                 break
 
     return EthereumAddress(address=address)
+
+
+def decode_chain_id(dpath):
+    slip44_networks = { 137: 30, 37310: 31 }
+    slip44_network_id = dpath[1] - 2**31
+
+    return slip44_networks.get(slip44_network_id, 0)
 
 
 def _ethereum_address_hex(address, chain_id=None):
