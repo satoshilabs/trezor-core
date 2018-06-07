@@ -14,7 +14,9 @@ class CoinInfo:
         segwit: bool,
         fork_id: int,
         force_bip143: bool,
+        version_group_id: int,
         replay_protection : bool
+
     ):
         self.coin_name = coin_name
         self.coin_shortcut = coin_shortcut
@@ -28,8 +30,8 @@ class CoinInfo:
         self.segwit = segwit
         self.fork_id = fork_id
         self.force_bip143 = force_bip143
+        self.version_group_id = version_group_id
         self.replay_protection = replay_protection
-
 
 # the following list is generated using tools/codegen/gen_coins.py
 # do not edit manually!
@@ -47,6 +49,7 @@ COINS = [
         segwit=True,
         fork_id=None,
         force_bip143=False,
+        version_group_id=None,
         replay_protection = False,
     ),
     CoinInfo(
@@ -62,6 +65,7 @@ COINS = [
         segwit=True,
         fork_id=None,
         force_bip143=False,
+        version_group_id=None,
         replay_protection = False,
     ),
     CoinInfo(
@@ -77,6 +81,7 @@ COINS = [
         segwit=False,
         fork_id=0,
         force_bip143=True,
+        version_group_id=None,
         replay_protection = False,
     ),
     CoinInfo(
@@ -92,6 +97,7 @@ COINS = [
         segwit=False,
         fork_id=0,
         force_bip143=True,
+        version_group_id=None,
         replay_protection = False,
     ),
     CoinInfo(
@@ -107,6 +113,7 @@ COINS = [
         segwit=False,
         fork_id=None,
         force_bip143=False,
+        version_group_id=None,
         replay_protection = False,
     ),
     CoinInfo(
@@ -122,6 +129,7 @@ COINS = [
         segwit=True,
         fork_id=None,
         force_bip143=False,
+        version_group_id=None,
         replay_protection = False,
     ),
     CoinInfo(
@@ -137,6 +145,7 @@ COINS = [
         segwit=False,
         fork_id=None,
         force_bip143=False,
+        version_group_id=None,
         replay_protection = False,
     ),
     CoinInfo(
@@ -152,6 +161,7 @@ COINS = [
         segwit=False,
         fork_id=None,
         force_bip143=False,
+        version_group_id=None,
         replay_protection = False,
     ),
     CoinInfo(
@@ -167,6 +177,7 @@ COINS = [
         segwit=False,
         fork_id=None,
         force_bip143=False,
+        version_group_id=0x03c48270,
         replay_protection = False,
     ),
     CoinInfo(
@@ -182,6 +193,7 @@ COINS = [
         segwit=False,
         fork_id=None,
         force_bip143=False,
+        version_group_id=0x03c48270,
         replay_protection = False,
     ),
     CoinInfo(
@@ -197,6 +209,7 @@ COINS = [
         segwit=True,
         fork_id=79,
         force_bip143=True,
+        version_group_id=None,
         replay_protection = False,
     ),
     CoinInfo(
@@ -212,6 +225,7 @@ COINS = [
         segwit=True,
         fork_id=None,
         force_bip143=False,
+        version_group_id=None,
         replay_protection = False,
     ),
     CoinInfo(
@@ -227,6 +241,7 @@ COINS = [
         segwit=True,
         fork_id=None,
         force_bip143=False,
+        version_group_id=None,
         replay_protection = False,
     ),
     CoinInfo(
@@ -242,6 +257,7 @@ COINS = [
         segwit=True,
         fork_id=None,
         force_bip143=False,
+        version_group_id=None,
         replay_protection = False,
     ),
     CoinInfo(
@@ -257,6 +273,7 @@ COINS = [
         segwit=True,
         fork_id=None,
         force_bip143=False,
+        version_group_id=None,
         replay_protection = False,
     ),
     CoinInfo(
@@ -272,6 +289,7 @@ COINS = [
         segwit=False,
         fork_id=None,
         force_bip143=False,
+        version_group_id=None,
         replay_protection = True,
     ),
 ]

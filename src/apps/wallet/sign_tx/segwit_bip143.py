@@ -1,9 +1,12 @@
 from trezor.crypto.hashlib import sha256
 from trezor.messages.SignTx import SignTx
+from trezor.messages.TxInputType import TxInputType
+from trezor.messages.TxOutputBinType import TxOutputBinType
 from trezor.messages import InputScriptType, FailureType
 from trezor.utils import HashWriter
 
-from apps.wallet.sign_tx.writers import *
+from apps.common.coininfo import CoinInfo
+from apps.wallet.sign_tx.writers import write_bytes, write_bytes_rev, write_uint32, write_uint64, write_varint, write_tx_output, get_tx_hash
 from apps.wallet.sign_tx.scripts import output_script_p2pkh, output_script_multisig
 from apps.wallet.sign_tx.multisig import multisig_get_pubkeys
 
@@ -38,10 +41,13 @@ class Bip143:
     def get_outputs_hash(self) -> bytes:
         return get_tx_hash(self.h_outputs, True)
 
-    def preimage_hash(self, tx: SignTx, txi: TxInputType, pubkeyhash: bytes, sighash: int) -> bytes:
+    def preimage_hash(self, coin: CoinInfo, tx: SignTx, txi: TxInputType, pubkeyhash: bytes, sighash: int) -> bytes:
         h_preimage = HashWriter(sha256)
 
+        assert not tx.overwintered
+
         write_uint32(h_preimage, tx.version)  # nVersion
+
         write_bytes(h_preimage, bytearray(self.get_prevouts_hash()))  # hashPrevouts
         write_bytes(h_preimage, bytearray(self.get_sequence_hash()))  # hashSequence
         write_bytes_rev(h_preimage, txi.prev_hash)  # outpoint

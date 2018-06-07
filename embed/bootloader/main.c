@@ -64,6 +64,7 @@ static void usb_init_all(void) {
         .serial_number   = "000000000000000000000000",
         .interface       = "TREZOR Interface",
         .usb21_enabled   = sectrue,
+        .usb21_landing   = sectrue,
     };
 
     static uint8_t rx_buffer[USB_PACKET_SIZE];
@@ -281,6 +282,13 @@ main_start:
         ui_fadeout();
         ui_screen_third();
         ui_fadein();
+
+        // erase storage
+        static const uint8_t sectors_storage[] = {
+            FLASH_SECTOR_STORAGE_1,
+            FLASH_SECTOR_STORAGE_2,
+        };
+        ensure(flash_erase_sectors(sectors_storage, sizeof(sectors_storage), NULL), NULL);
 
         // and start the usb loop
         if (bootloader_usb_loop(NULL, NULL) != sectrue) {

@@ -1,6 +1,6 @@
 from trezor.crypto.hashlib import sha256
-
-from apps.wallet.sign_tx.writers import *
+from trezor.messages.TxInputType import TxInputType
+from trezor.messages.TxOutputBinType import TxOutputBinType
 
 
 # TX Serialization
@@ -33,6 +33,7 @@ def write_tx_output(w, o: TxOutputBinType):
 
 
 def write_op_push(w, n: int):
+    assert n >= 0 and n <= 0xFFFFFFFF
     if n < 0x4C:
         w.append(n & 0xFF)
     elif n < 0xFF:
@@ -55,6 +56,7 @@ def write_op_push(w, n: int):
 
 
 def write_varint(w, n: int):
+    assert n >= 0 and n <= 0xFFFFFFFF
     if n < 253:
         w.append(n & 0xFF)
     elif n < 65536:
@@ -70,6 +72,7 @@ def write_varint(w, n: int):
 
 
 def write_uint32(w, n: int):
+    assert n >= 0 and n <= 0xFFFFFFFF
     w.append(n & 0xFF)
     w.append((n >> 8) & 0xFF)
     w.append((n >> 16) & 0xFF)
@@ -77,6 +80,7 @@ def write_uint32(w, n: int):
 
 
 def write_uint64(w, n: int):
+    assert n >= 0 and n <= 0xFFFFFFFFFFFFFFFF
     w.append(n & 0xFF)
     w.append((n >> 8) & 0xFF)
     w.append((n >> 16) & 0xFF)
