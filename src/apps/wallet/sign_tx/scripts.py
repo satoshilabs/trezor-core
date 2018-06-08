@@ -41,10 +41,6 @@ def output_script_p2sh(scripthash: bytes) -> bytearray:
     s[22] = 0x87  # OP_EQUAL
     return s
 
-def output_script_replay_protection(prev_input_script):
-    s=bytearray(63)
-    return bytes(prev_input_script)
-
 # SegWit: Native P2WPKH or P2WSH
 # ===
 # https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki#p2wpkh

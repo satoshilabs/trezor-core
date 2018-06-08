@@ -21,8 +21,6 @@ from apps.wallet.sign_tx.tx_weight_calculator import *
 from apps.wallet.sign_tx.writers import *
 from apps.wallet.sign_tx import progress
 
-from apps.wallet.sign_tx.scripts import output_script_replay_protection
-
 
 # the number of bip32 levels used in a wallet (chain and address)
 _BIP32_WALLET_DEPTH = const(2)
@@ -275,8 +273,7 @@ async def sign_tx(tx: SignTx, root: bip32.HDNode):
                             txi_sign.multisig.m)
                     elif txi_sign.script_type == InputScriptType.SPENDADDRESS:
                         if coin.replay_protection:
-                            txi_sign.script_sig = output_script_replay_protection(
-                                txi_sign.prev_input_script)
+                            txi_sign.script_sig = txi_sign.prev_input_script
                         else:
                             txi_sign.script_sig = output_script_p2pkh(
                                 ecdsa_hash_pubkey(key_sign_pub))
