@@ -14,7 +14,9 @@ class CoinInfo:
         segwit: bool,
         fork_id: int,
         force_bip143: bool,
-        version_group_id: int
+        version_group_id: int,
+        replay_protection : bool
+
     ):
         self.coin_name = coin_name
         self.coin_shortcut = coin_shortcut
@@ -29,7 +31,7 @@ class CoinInfo:
         self.fork_id = fork_id
         self.force_bip143 = force_bip143
         self.version_group_id = version_group_id
-
+        self.replay_protection = replay_protection
 
 # the following list is generated using tools/codegen/gen_coins.py
 # do not edit manually!
@@ -48,6 +50,7 @@ COINS = [
         fork_id=None,
         force_bip143=False,
         version_group_id=None,
+        replay_protection = False,
     ),
     CoinInfo(
         coin_name='Testnet',
@@ -63,6 +66,7 @@ COINS = [
         fork_id=None,
         force_bip143=False,
         version_group_id=None,
+        replay_protection = False,
     ),
     CoinInfo(
         coin_name='Bcash',
@@ -78,6 +82,7 @@ COINS = [
         fork_id=0,
         force_bip143=True,
         version_group_id=None,
+        replay_protection = False,
     ),
     CoinInfo(
         coin_name='Bcash Testnet',
@@ -93,6 +98,7 @@ COINS = [
         fork_id=0,
         force_bip143=True,
         version_group_id=None,
+        replay_protection = False,
     ),
     CoinInfo(
         coin_name='Namecoin',
@@ -108,6 +114,7 @@ COINS = [
         fork_id=None,
         force_bip143=False,
         version_group_id=None,
+        replay_protection = False,
     ),
     CoinInfo(
         coin_name='Litecoin',
@@ -123,6 +130,7 @@ COINS = [
         fork_id=None,
         force_bip143=False,
         version_group_id=None,
+        replay_protection = False,
     ),
     CoinInfo(
         coin_name='Dogecoin',
@@ -138,6 +146,7 @@ COINS = [
         fork_id=None,
         force_bip143=False,
         version_group_id=None,
+        replay_protection = False,
     ),
     CoinInfo(
         coin_name='Dash',
@@ -153,6 +162,7 @@ COINS = [
         fork_id=None,
         force_bip143=False,
         version_group_id=None,
+        replay_protection = False,
     ),
     CoinInfo(
         coin_name='Zcash',
@@ -168,6 +178,7 @@ COINS = [
         fork_id=None,
         force_bip143=False,
         version_group_id=0x03c48270,
+        replay_protection = False,
     ),
     CoinInfo(
         coin_name='Zcash Testnet',
@@ -183,6 +194,7 @@ COINS = [
         fork_id=None,
         force_bip143=False,
         version_group_id=0x03c48270,
+        replay_protection = False,
     ),
     CoinInfo(
         coin_name='Bgold',
@@ -198,6 +210,7 @@ COINS = [
         fork_id=79,
         force_bip143=True,
         version_group_id=None,
+        replay_protection = False,
     ),
     CoinInfo(
         coin_name='DigiByte',
@@ -213,6 +226,7 @@ COINS = [
         fork_id=None,
         force_bip143=False,
         version_group_id=None,
+        replay_protection = False,
     ),
     CoinInfo(
         coin_name='Monacoin',
@@ -228,6 +242,7 @@ COINS = [
         fork_id=None,
         force_bip143=False,
         version_group_id=None,
+        replay_protection = False,
     ),
     CoinInfo(
         coin_name='Fujicoin',
@@ -243,6 +258,7 @@ COINS = [
         fork_id=None,
         force_bip143=False,
         version_group_id=None,
+        replay_protection = False,
     ),
     CoinInfo(
         coin_name='Vertcoin',
@@ -258,5 +274,22 @@ COINS = [
         fork_id=None,
         force_bip143=False,
         version_group_id=None,
+        replay_protection = False,
+    ),
+    CoinInfo(
+        coin_name='Zencash',
+        coin_shortcut='ZEN',
+        address_type=8329,
+        address_type_p2sh=8342,
+        maxfee_kb=2000000,
+        signed_message_header='Zencash Signed Message:\n',
+        xpub_magic=0x0488b21e,
+        bech32_prefix='zen',
+        cashaddr_prefix=None,
+        segwit=False,
+        fork_id=None,
+        force_bip143=False,
+        version_group_id=None,
+        replay_protection = True,
     ),
 ]
