@@ -28,17 +28,15 @@ async def ethereum_get_address(ctx, msg):
     return EthereumAddress(address=address)
 
 
-''' <SLIP-44 coin ID, EIP-155 chain ID> '''
+''' <SLIP-44 coin ID (2^31 to right), EIP-155 chain ID> '''
 rksip60_applying_chains = {
-    137: 30, # RSK MainNet
-    37310: 31 # RSK TestNet
+    2147483785: 30, # RSK MainNet
+    2147520958: 31 # RSK TestNet
 }
 
 
 def decode_chain_id(dpath):
-    slip44_network_id = dpath[1] - 2**31
-
-    return rksip60_applying_chains.get(slip44_network_id, 0)
+    return rksip60_applying_chains.get(dpath[1], 0)
 
 
 def _ethereum_address_hex(address, chain_id=None):
