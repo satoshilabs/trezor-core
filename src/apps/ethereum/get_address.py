@@ -28,18 +28,24 @@ async def ethereum_get_address(ctx, msg):
     return EthereumAddress(address=address)
 
 
+''' <SLIP-44 coin ID, EIP-155 chain ID> '''
+rksip60_applying_chains = {
+    137: 30, # RSK MainNet
+    37310: 31 # RSK TestNet
+}
+
+
 def decode_chain_id(dpath):
-    slip44_networks = { 137: 30, 37310: 31 }
     slip44_network_id = dpath[1] - 2**31
 
-    return slip44_networks.get(slip44_network_id, 0)
+    return rksip60_applying_chains.get(slip44_network_id, 0)
 
 
 def _ethereum_address_hex(address, chain_id=None):
     from ubinascii import hexlify
     from trezor.crypto.hashlib import sha3_256
 
-    applying_chain_ids = [30, 31]
+    applying_chain_ids = rksip60_applying_chains.values()
 
     hx = hexlify(address).decode()
     prefix = str(chain_id) + '0x' if (chain_id in applying_chain_ids) else ''
