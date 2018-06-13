@@ -1,4 +1,5 @@
 from apps.wallet.get_address import _show_address, _show_qr
+from apps.ethereum import networks
 
 
 async def ethereum_get_address(ctx, msg):
@@ -16,7 +17,8 @@ async def ethereum_get_address(ctx, msg):
     address = sha3_256(public_key[1:]).digest(True)[12:]  # Keccak
 
     if msg.show_display:
-        hex_addr = _ethereum_address_hex(address)
+        network = networks.by_slip44(address_n[1] & 0x7fffffff)
+        hex_addr = _ethereum_address_hex(address) if network is None else _ethereum_address_hex(address, network.chain_id, network.rskip60)
         while True:
             if await _show_address(ctx, hex_addr):
                 break
@@ -26,12 +28,21 @@ async def ethereum_get_address(ctx, msg):
     return EthereumAddress(address=address)
 
 
-def _ethereum_address_hex(address):
+def _ethereum_address_hex(address, chain_id=None, predefined_rskip60=None):
     from ubinascii import hexlify
     from trezor.crypto.hashlib import sha3_256
 
+    if chain_id is None:
+        is_applying_rskip60 = False
+    elif predefined_rskip60 is not None:
+        is_applying_rskip60 = predefined_rskip60
+    else:
+        network = networks.by_chain_id(chain_id)
+        is_applying_rskip60 = network is not None and network.rskip60
+
     hx = hexlify(address).decode()
-    hs = sha3_256(hx).digest(True)
+    prefix = str(chain_id) + '0x' if is_applying_rskip60 else ''
+    hs = sha3_256(prefix + hx).digest(True)
     h = ''
 
     for i in range(20):
