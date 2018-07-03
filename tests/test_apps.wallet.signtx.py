@@ -96,8 +96,11 @@ class TestSignTx(unittest.TestCase):
         root = bip32.from_seed(seed, 'secp256k1')
 
         signer = signing.sign_tx(tx, root)
+
         for request, response in chunks(messages, 2):
-            self.assertEqualEx(signer.send(request), response)
+            res = signer.send(request)
+            self.assertEqualEx(res, response)
+
         with self.assertRaises(StopIteration):
             signer.send(None)
 

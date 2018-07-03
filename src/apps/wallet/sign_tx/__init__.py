@@ -1,9 +1,9 @@
 from trezor import ui, wire
-from trezor.messages.wire_types import TxAck
+from trezor.messages.MessageType import TxAck
 from trezor.messages.TxRequest import TxRequest
 from trezor.messages.RequestType import TXFINISHED
 from apps.common import seed
-from apps.wallet.sign_tx.helpers import UiConfirmOutput, UiConfirmTotal, UiConfirmFeeOverThreshold
+from apps.wallet.sign_tx.helpers import UiConfirmOutput, UiConfirmTotal, UiConfirmFeeOverThreshold, UiConfirmForeignAddress
 
 
 @ui.layout
@@ -41,6 +41,8 @@ async def sign_tx(ctx, msg):
         elif isinstance(req, UiConfirmFeeOverThreshold):
             res = await layout.confirm_feeoverthreshold(ctx, req.fee, req.coin)
             progress.report_init()
+        elif isinstance(req, UiConfirmForeignAddress):
+            res = await layout.confirm_foreign_address(ctx, req.address_n, req.coin)
         else:
             raise TypeError('Invalid signing instruction')
     return req

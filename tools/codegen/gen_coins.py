@@ -11,10 +11,12 @@ fields = [
     'xpub_magic',
     'bech32_prefix',
     'cashaddr_prefix',
+    'slip44',
     'segwit',
     'fork_id',
     'force_bip143',
     'version_group_id',
+    'bip115',
 ]
 
 support = json.load(open('../../vendor/trezor-common/defs/support.json', 'r'))

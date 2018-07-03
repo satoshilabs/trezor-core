@@ -91,7 +91,7 @@ def get_total_length(msg: EthereumSignTx, data_total: int) -> int:
 
 
 async def send_request_chunk(ctx, data_left: int):
-    from trezor.messages.wire_types import EthereumTxAck
+    from trezor.messages.MessageType import EthereumTxAck
     # TODO: layoutProgress ?
     req = EthereumTxRequest()
     if data_left <= 1024:
@@ -120,12 +120,6 @@ async def send_signature(ctx, msg: EthereumSignTx, digest):
     req.signature_s = signature[33:]
 
     return req
-
-
-def node_derive(root, address_n: list):
-    node = root.clone()
-    node.derive_path(address_n)
-    return node
 
 
 def check(msg: EthereumSignTx):

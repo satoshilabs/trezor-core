@@ -6,6 +6,7 @@ from trezor.messages import ButtonRequestType
 from trezor.messages import OutputScriptType
 from apps.common.confirm import confirm
 from apps.common.confirm import hold_to_confirm
+from apps.wallet.sign_tx import addresses
 
 
 def format_coin_amount(amount, coin):
@@ -29,7 +30,7 @@ async def confirm_output(ctx, output, coin):
                        ui.MONO, *split_op_return(data), icon_color=ui.GREEN)
     else:
         address = output.address
-        address_short = address[len(coin.cashaddr_prefix) + 1:] if coin.cashaddr_prefix is not None else address
+        address_short = addresses.address_short(coin, address)
         content = Text('Confirm sending', ui.ICON_SEND,
                        ui.NORMAL, format_coin_amount(output.amount, coin) + ' to',
                        ui.MONO, *split_address(address_short), icon_color=ui.GREEN)
@@ -53,3 +54,12 @@ async def confirm_feeoverthreshold(ctx, fee, coin):
                    'Continue?', icon_color=ui.GREEN)
 
     return await confirm(ctx, content, ButtonRequestType.FeeOverThreshold)
+
+
+async def confirm_foreign_address(ctx, address_n, coin):
+    content = Text('Confirm sending', ui.ICON_SEND,
+                   'Trying to spend',
+                   'coins from another chain.',
+                   'Continue?', icon_color=ui.RED)
+
+    return await confirm(ctx, content, ButtonRequestType.SignTx)

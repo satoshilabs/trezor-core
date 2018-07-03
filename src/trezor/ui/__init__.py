@@ -13,8 +13,15 @@ from trezor.utils import model
 
 display = Display()
 
-# for desktop platforms, we need to refresh the display after each frame
-if model() == 'EMU':
+# in debug mode, display an indicator in top right corner
+if __debug__:
+    def debug_display_refresh():
+        display.bar(Display.WIDTH - 8, 0, 8, 8, 0xF800)
+        display.refresh()
+    loop.after_step_hook = debug_display_refresh
+
+# in both debug and production, emulator needs to draw the screen explicitly
+elif model() == 'EMU':
     loop.after_step_hook = display.refresh
 
 # import constants from modtrezorui
@@ -165,6 +172,24 @@ class Widget:
         result = None
         while result is None:
             self.render()
+            event, *pos = yield touch
+            result = self.touch(event, pos)
+        return result
+
+
+class LazyWidget(Widget):
+    render_next_frame = True
+
+    def taint(self):
+        self.render_next_frame = True
+
+    def __iter__(self):
+        touch = loop.wait(io.TOUCH)
+        result = None
+        while result is None:
+            if self.render_next_frame:
+                self.render()
+                self.render_next_frame = False
             event, *pos = yield touch
             result = self.touch(event, pos)
         return result
