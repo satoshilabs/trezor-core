@@ -18,8 +18,7 @@ CROSS_PORT_OPTS ?=
 
 PRODUCTION ?= 0
 
-STLINK_VER ?= v2
-OPENOCD = openocd -f interface/stlink-$(STLINK_VER).cfg -c "transport select hla_swd" -f target/stm32f4x.cfg
+OPENOCD = openocd -f interface/stlink.cfg -c "transport select hla_swd" -f target/stm32f4x.cfg
 
 BOARDLOADER_START   = 0x08000000
 BOOTLOADER_START    = 0x08020000
