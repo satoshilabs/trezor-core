@@ -1,19 +1,36 @@
-from apps.common import seed
+from trezor import ui
+from trezor.messages import ButtonRequestType
 from trezor.messages.TezosPublicKey import TezosPublicKey
-from trezor.crypto.curve import ed25519
-from apps.wallet.get_public_key import _show_pubkey
+from trezor.ui.text import Text
+from trezor.utils import chunks
 
-from apps.tezos.helpers import TEZOS_CURVE
+from apps.common import seed
+from apps.common.confirm import require_confirm
+from apps.tezos.helpers import (
+    b58cencode,
+    get_curve_module,
+    get_curve_name,
+    get_pk_prefix,
+)
 
 
 async def tezos_get_public_key(ctx, msg):
     address_n = msg.address_n or ()
-    node = await seed.derive_node(ctx, address_n, TEZOS_CURVE)
-            
+    curve = msg.curve or 0
+    node = await seed.derive_node(ctx, address_n, get_curve_name(curve))
+
     sk = node.private_key()
-    pk = ed25519.publickey(sk)
+    pk = get_curve_module(curve).publickey(sk)
 
     if msg.show_display:
-        await _show_pubkey(ctx, pk)
+        pk_prefixed = b58cencode(pk, prefix=get_pk_prefix(curve))
+        await _show_tezos_pubkey(ctx, pk_prefixed)
 
     return TezosPublicKey(public_key=pk)
+
+
+async def _show_tezos_pubkey(ctx, pubkey):
+    lines = chunks(pubkey, 18)
+    text = Text("Confirm public key", ui.ICON_RECEIVE, icon_color=ui.GREEN)
+    text.mono(*lines)
+    return await require_confirm(ctx, text, code=ButtonRequestType.PublicKey)
