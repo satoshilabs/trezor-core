@@ -12,6 +12,10 @@ PREFIXES = {
     "edpk": [13, 15, 37, 217],
     "sppk": [3, 254, 226, 86],
     "p2pk": [3, 178, 139, 127],
+    # signatures
+    "edsig": [9, 245, 205, 134, 18],
+    "spsig1": [13, 115, 101, 19, 63],
+    "p2sig": [54, 240, 44, 52],
     # operation hash
     "o": [5, 116],
 }
@@ -21,18 +25,21 @@ TEZOS_CURVES = [
         "name": "ed25519",
         "address_prefix": "tz1",
         "pk_prefix": "edpk",
+        "sig_prefix": "edsig",
         "module": ed25519,
     },
     {
         "name": "secp256k1",
         "address_prefix": "tz2",
         "pk_prefix": "sppk",
+        "sig_prefix": "spsig1",
         "module": secp256k1,
     },
     {
         "name": "nist256p1",
         "address_prefix": "tz3",
         "pk_prefix": "p2pk",
+        "sig_prefix": "p2sig",
         "module": nist256p1,
     },
 ]
@@ -54,6 +61,10 @@ def get_address_prefix(curve):
 
 def get_pk_prefix(curve):
     return TEZOS_CURVES[curve]["pk_prefix"]
+
+
+def get_sig_prefix(curve):
+    return TEZOS_CURVES[curve]["sig_prefix"]
 
 
 def b58cencode(payload, prefix=None):
