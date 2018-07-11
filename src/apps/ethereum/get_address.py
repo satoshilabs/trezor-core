@@ -17,7 +17,10 @@ async def ethereum_get_address(ctx, msg):
     address = sha3_256(public_key[1:]).digest(True)[12:]  # Keccak
 
     if msg.show_display:
-        network = networks.by_slip44(address_n[1] & 0x7fffffff)
+        if len(address_n) > 1:  # path has slip44 network identifier
+            network = networks.by_slip44(address_n[1] & 0x7fffffff)
+        else:
+            network = None
         hex_addr = _ethereum_address_hex(address, network)
 
         while True:
@@ -37,18 +40,18 @@ def _ethereum_address_hex(address, network=None):
 
     hx = hexlify(address).decode()
 
-    prefix = str(network.chain_id) + '0x' if rskip60 else ''
+    prefix = str(network.chain_id) + "0x" if rskip60 else ""
     hs = sha3_256(prefix + hx).digest(True)
-    h = ''
+    h = ""
 
     for i in range(20):
         l = hx[i * 2]
-        if hs[i] & 0x80 and l >= 'a' and l <= 'f':
+        if hs[i] & 0x80 and l >= "a" and l <= "f":
             l = l.upper()
         h += l
         l = hx[i * 2 + 1]
-        if hs[i] & 0x08 and l >= 'a' and l <= 'f':
+        if hs[i] & 0x08 and l >= "a" and l <= "f":
             l = l.upper()
         h += l
 
-    return '0x' + h
+    return "0x" + h

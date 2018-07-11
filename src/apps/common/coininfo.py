@@ -1,5 +1,7 @@
-class CoinInfo:
+from trezor.crypto.base58 import groestl512d_32, sha256d_32
 
+
+class CoinInfo:
     def __init__(
         self,
         coin_name: str,
@@ -16,7 +18,8 @@ class CoinInfo:
         fork_id: int,
         force_bip143: bool,
         version_group_id: int,
-        bip115: bool
+        bip115: bool,
+        curve_name: str,
     ):
         self.coin_name = coin_name
         self.coin_shortcut = coin_shortcut
@@ -33,10 +36,18 @@ class CoinInfo:
         self.force_bip143 = force_bip143
         self.version_group_id = version_group_id
         self.bip115 = bip115
+        self.curve_name = curve_name
+        if curve_name == "secp256k1-groestl":
+            self.b58_hash = groestl512d_32
+            self.sign_hash_double = False
+        else:
+            self.b58_hash = sha256d_32
+            self.sign_hash_double = True
 
 
-# the following list is generated using tools/codegen/gen_coins.py
+# generated using tools/codegen/gen_coins.py
 # do not edit manually!
+# fmt: off
 COINS = [
     CoinInfo(
         coin_name='Bitcoin',
@@ -54,6 +65,7 @@ COINS = [
         force_bip143=False,
         version_group_id=None,
         bip115=False,
+        curve_name='secp256k1',
     ),
     CoinInfo(
         coin_name='Testnet',
@@ -71,6 +83,7 @@ COINS = [
         force_bip143=False,
         version_group_id=None,
         bip115=False,
+        curve_name='secp256k1',
     ),
     CoinInfo(
         coin_name='Bcash',
@@ -88,6 +101,7 @@ COINS = [
         force_bip143=True,
         version_group_id=None,
         bip115=False,
+        curve_name='secp256k1',
     ),
     CoinInfo(
         coin_name='Bcash Testnet',
@@ -105,6 +119,7 @@ COINS = [
         force_bip143=True,
         version_group_id=None,
         bip115=False,
+        curve_name='secp256k1',
     ),
     CoinInfo(
         coin_name='Bgold',
@@ -122,6 +137,7 @@ COINS = [
         force_bip143=True,
         version_group_id=None,
         bip115=False,
+        curve_name='secp256k1',
     ),
     CoinInfo(
         coin_name='Bprivate',
@@ -139,6 +155,7 @@ COINS = [
         force_bip143=False,
         version_group_id=None,
         bip115=False,
+        curve_name='secp256k1',
     ),
     CoinInfo(
         coin_name='Dash',
@@ -156,6 +173,7 @@ COINS = [
         force_bip143=False,
         version_group_id=None,
         bip115=False,
+        curve_name='secp256k1',
     ),
     CoinInfo(
         coin_name='DigiByte',
@@ -173,6 +191,7 @@ COINS = [
         force_bip143=False,
         version_group_id=None,
         bip115=False,
+        curve_name='secp256k1',
     ),
     CoinInfo(
         coin_name='Dogecoin',
@@ -190,13 +209,14 @@ COINS = [
         force_bip143=False,
         version_group_id=None,
         bip115=False,
+        curve_name='secp256k1',
     ),
     CoinInfo(
         coin_name='Fujicoin',
         coin_shortcut='FJC',
         address_type=36,
         address_type_p2sh=16,
-        maxfee_kb=1000000,
+        maxfee_kb=10000000,
         signed_message_header='FujiCoin Signed Message:\n',
         xpub_magic=0x0488b21e,
         bech32_prefix='fc',
@@ -207,6 +227,43 @@ COINS = [
         force_bip143=False,
         version_group_id=None,
         bip115=False,
+        curve_name='secp256k1',
+    ),
+    CoinInfo(
+        coin_name='Groestlcoin',
+        coin_shortcut='GRS',
+        address_type=36,
+        address_type_p2sh=5,
+        maxfee_kb=100000,
+        signed_message_header='GroestlCoin Signed Message:\n',
+        xpub_magic=0x0488b21e,
+        bech32_prefix='grs',
+        cashaddr_prefix=None,
+        slip44=17,
+        segwit=True,
+        fork_id=None,
+        force_bip143=False,
+        version_group_id=None,
+        bip115=False,
+        curve_name='secp256k1-groestl',
+    ),
+    CoinInfo(
+        coin_name='Groestlcoin Testnet',
+        coin_shortcut='tGRS',
+        address_type=111,
+        address_type_p2sh=196,
+        maxfee_kb=100000,
+        signed_message_header='GroestlCoin Signed Message:\n',
+        xpub_magic=0x043587cf,
+        bech32_prefix='tgrs',
+        cashaddr_prefix=None,
+        slip44=1,
+        segwit=True,
+        fork_id=None,
+        force_bip143=False,
+        version_group_id=None,
+        bip115=False,
+        curve_name='secp256k1-groestl',
     ),
     CoinInfo(
         coin_name='Litecoin',
@@ -224,6 +281,7 @@ COINS = [
         force_bip143=False,
         version_group_id=None,
         bip115=False,
+        curve_name='secp256k1',
     ),
     CoinInfo(
         coin_name='Litecoin Testnet',
@@ -241,6 +299,7 @@ COINS = [
         force_bip143=False,
         version_group_id=None,
         bip115=False,
+        curve_name='secp256k1',
     ),
     CoinInfo(
         coin_name='Monacoin',
@@ -258,6 +317,7 @@ COINS = [
         force_bip143=False,
         version_group_id=None,
         bip115=False,
+        curve_name='secp256k1',
     ),
     CoinInfo(
         coin_name='Namecoin',
@@ -275,6 +335,7 @@ COINS = [
         force_bip143=False,
         version_group_id=None,
         bip115=False,
+        curve_name='secp256k1',
     ),
     CoinInfo(
         coin_name='Vertcoin',
@@ -292,6 +353,7 @@ COINS = [
         force_bip143=False,
         version_group_id=None,
         bip115=False,
+        curve_name='secp256k1',
     ),
     CoinInfo(
         coin_name='Viacoin',
@@ -309,6 +371,7 @@ COINS = [
         force_bip143=False,
         version_group_id=None,
         bip115=False,
+        curve_name='secp256k1',
     ),
     CoinInfo(
         coin_name='Zcash',
@@ -326,6 +389,7 @@ COINS = [
         force_bip143=False,
         version_group_id=0x03c48270,
         bip115=False,
+        curve_name='secp256k1',
     ),
     CoinInfo(
         coin_name='Zcash Testnet',
@@ -343,6 +407,7 @@ COINS = [
         force_bip143=False,
         version_group_id=0x03c48270,
         bip115=False,
+        curve_name='secp256k1',
     ),
     CoinInfo(
         coin_name='Zcoin',
@@ -360,6 +425,7 @@ COINS = [
         force_bip143=False,
         version_group_id=None,
         bip115=False,
+        curve_name='secp256k1',
     ),
     CoinInfo(
         coin_name='Zcoin Testnet',
@@ -377,6 +443,7 @@ COINS = [
         force_bip143=False,
         version_group_id=None,
         bip115=False,
+        curve_name='secp256k1',
     ),
     CoinInfo(
         coin_name='Zencash',
@@ -394,5 +461,6 @@ COINS = [
         force_bip143=False,
         version_group_id=None,
         bip115=True,
+        curve_name='secp256k1',
     ),
 ]

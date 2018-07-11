@@ -1,4 +1,5 @@
 from micropython import const
+
 from trezor import ui
 
 TEXT_HEADER_HEIGHT = const(48)
@@ -10,7 +11,7 @@ TEXT_MAX_LINES = const(5)
 BR = const(-256)
 
 
-def render_words(words: list, new_lines: bool, max_lines: int) -> None:
+def render_text(words: list, new_lines: bool, max_lines: int) -> None:
     # initial rendering state
     font = ui.NORMAL
     fg = ui.FG
@@ -21,9 +22,9 @@ def render_words(words: list, new_lines: bool, max_lines: int) -> None:
     OFFSET_Y_MAX = TEXT_HEADER_HEIGHT + TEXT_LINE_HEIGHT * max_lines
 
     # sizes of common glyphs
-    SPACE = ui.display.text_width(' ', font)
-    DASH = ui.display.text_width('-', ui.BOLD)
-    ELLIPSIS = ui.display.text_width('...', ui.BOLD)
+    SPACE = ui.display.text_width(" ", font)
+    DASH = ui.display.text_width("-", ui.BOLD)
+    ELLIPSIS = ui.display.text_width("...", ui.BOLD)
 
     for word_index, word in enumerate(words):
         has_next_word = word_index < len(words) - 1
@@ -32,7 +33,7 @@ def render_words(words: list, new_lines: bool, max_lines: int) -> None:
             if word == BR:
                 # line break
                 if offset_y >= OFFSET_Y_MAX:
-                    ui.display.text(offset_x, offset_y, '...', ui.BOLD, ui.GREY, bg)
+                    ui.display.text(offset_x, offset_y, "...", ui.BOLD, ui.GREY, bg)
                     return
                 offset_x = TEXT_MARGIN_LEFT
                 offset_y += TEXT_LINE_HEIGHT
@@ -46,20 +47,26 @@ def render_words(words: list, new_lines: bool, max_lines: int) -> None:
 
         width = ui.display.text_width(word, font)
 
-        while offset_x + width > OFFSET_X_MAX or (has_next_word and offset_y >= OFFSET_Y_MAX):
+        while offset_x + width > OFFSET_X_MAX or (
+            has_next_word and offset_y >= OFFSET_Y_MAX
+        ):
             beginning_of_line = offset_x == TEXT_MARGIN_LEFT
             word_fits_in_one_line = width < (OFFSET_X_MAX - TEXT_MARGIN_LEFT)
-            if offset_y < OFFSET_Y_MAX and word_fits_in_one_line and not beginning_of_line:
+            if (
+                offset_y < OFFSET_Y_MAX
+                and word_fits_in_one_line
+                and not beginning_of_line
+            ):
                 # line break
                 offset_x = TEXT_MARGIN_LEFT
                 offset_y += TEXT_LINE_HEIGHT
                 break
             # word split
             if offset_y < OFFSET_Y_MAX:
-                split = '-'
+                split = "-"
                 splitw = DASH
             else:
-                split = '...'
+                split = "..."
                 splitw = ELLIPSIS
             # find span that fits
             for index in range(len(word) - 1, 0, -1):
@@ -88,7 +95,7 @@ def render_words(words: list, new_lines: bool, max_lines: int) -> None:
         if new_lines and has_next_word:
             # line break
             if offset_y >= OFFSET_Y_MAX:
-                ui.display.text(offset_x, offset_y, '...', ui.BOLD, ui.GREY, bg)
+                ui.display.text(offset_x, offset_y, "...", ui.BOLD, ui.GREY, bg)
                 return
             offset_x = TEXT_MARGIN_LEFT
             offset_y += TEXT_LINE_HEIGHT
@@ -99,20 +106,36 @@ def render_words(words: list, new_lines: bool, max_lines: int) -> None:
 
 
 class Text(ui.LazyWidget):
-    def __init__(self,
-                 header_text: str,
-                 header_icon: bytes,
-                 *content: list,
-                 new_lines: bool = True,
-                 max_lines: int = TEXT_MAX_LINES,
-                 icon_color: int = ui.ORANGE_ICON):
+    def __init__(
+        self,
+        header_text: str,
+        header_icon: str = ui.ICON_DEFAULT,
+        icon_color: int = ui.ORANGE_ICON,
+        max_lines: int = TEXT_MAX_LINES,
+        new_lines: bool = True,
+    ):
         self.header_text = header_text
         self.header_icon = header_icon
-        self.content = content
-        self.new_lines = new_lines
-        self.max_lines = max_lines
         self.icon_color = icon_color
+        self.max_lines = max_lines
+        self.new_lines = new_lines
+        self.content = []
+
+    def normal(self, *content):
+        self.content.extend(content)
+
+    def bold(self, *content):
+        self.content.append(ui.BOLD)
+        self.content.extend(content)
+        self.content.append(ui.NORMAL)
+
+    def mono(self, *content):
+        self.content.append(ui.MONO)
+        self.content.extend(content)
+        self.content.append(ui.NORMAL)
 
     def render(self):
-        ui.header(self.header_text, self.header_icon, ui.TITLE_GREY, ui.BG, self.icon_color)
-        render_words(self.content, self.new_lines, self.max_lines)
+        ui.header(
+            self.header_text, self.header_icon, ui.TITLE_GREY, ui.BG, self.icon_color
+        )
+        render_text(self.content, self.new_lines, self.max_lines)

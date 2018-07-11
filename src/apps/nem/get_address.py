@@ -3,13 +3,13 @@ from trezor.messages import ButtonRequestType
 from trezor.messages.NEMAddress import NEMAddress
 from trezor.ui.text import Text
 
+from .helpers import NEM_CURVE, get_network_str
+from .layout import split_address
+from .validators import validate_network
+
 from apps.common import seed
 from apps.common.confirm import confirm
 from apps.common.display_address import show_qr
-
-from .layout import split_address
-from .helpers import get_network_str, NEM_CURVE
-from .validators import validate_network
 
 
 async def get_address(ctx, msg):
@@ -30,9 +30,9 @@ async def get_address(ctx, msg):
 
 async def _show_address(ctx, address: str, network: int):
     lines = split_address(address)
-    content = Text(
-        'Confirm address', ui.ICON_RECEIVE,
-        ui.NORMAL, '%s network' % get_network_str(network),
-        ui.MONO, *lines,
-        icon_color=ui.GREEN)
-    return await confirm(ctx, content, code=ButtonRequestType.Address, cancel='QR', cancel_style=ui.BTN_KEY)
+    text = Text("Confirm address", ui.ICON_RECEIVE, icon_color=ui.GREEN)
+    text.normal("%s network" % get_network_str(network))
+    text.mono(*lines)
+    return await confirm(
+        ctx, text, code=ButtonRequestType.Address, cancel="QR", cancel_style=ui.BTN_KEY
+    )
