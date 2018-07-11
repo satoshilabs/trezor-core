@@ -6,14 +6,6 @@ from .TezosContractID import TezosContractID
 
 class TezosOperationCommon(p.MessageType):
     FIELDS = {
-<<<<<<< HEAD
-        1: ('tag', p.UVarintType, 0),
-        2: ('source', TezosContractID, 0),
-        3: ('fee', p.UVarintType, 0),
-        4: ('counter', p.UVarintType, 0),
-        5: ('gas_limit', p.UVarintType, 0),
-        6: ('storage_limit', p.UVarintType, 0),
-=======
         1: ('branch', p.BytesType, 0),
         2: ('tag', p.UVarintType, 0),
         3: ('source', TezosContractID, 0),
@@ -21,15 +13,11 @@ class TezosOperationCommon(p.MessageType):
         5: ('counter', p.UVarintType, 0),
         6: ('gas_limit', p.UVarintType, 0),
         7: ('storage_limit', p.UVarintType, 0),
->>>>>>> master
     }
 
     def __init__(
         self,
-<<<<<<< HEAD
-=======
         branch: bytes = None,
->>>>>>> master
         tag: int = None,
         source: TezosContractID = None,
         fee: int = None,
@@ -37,10 +25,7 @@ class TezosOperationCommon(p.MessageType):
         gas_limit: int = None,
         storage_limit: int = None,
     ) -> None:
-<<<<<<< HEAD
-=======
         self.branch = branch
->>>>>>> master
         self.tag = tag
         self.source = source
         self.fee = fee
