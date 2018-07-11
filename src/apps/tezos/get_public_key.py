@@ -21,12 +21,12 @@ async def tezos_get_public_key(ctx, msg):
 
     sk = node.private_key()
     pk = get_curve_module(curve).publickey(sk)
+    pk_prefixed = b58cencode(pk, prefix=get_pk_prefix(curve))
 
     if msg.show_display:
-        pk_prefixed = b58cencode(pk, prefix=get_pk_prefix(curve))
         await _show_tezos_pubkey(ctx, pk_prefixed)
 
-    return TezosPublicKey(public_key=pk)
+    return TezosPublicKey(public_key=pk_prefixed)
 
 
 async def _show_tezos_pubkey(ctx, pubkey):
