@@ -68,11 +68,10 @@ def get_sig_prefix(curve):
 
 
 def b58cencode(payload, prefix=None):
-    payload = list(payload)
     result = payload
     if prefix is not None:
-        result = PREFIXES[prefix] + payload
-    return base58.encode_check(bytes(result))
+        result = bytes(PREFIXES[prefix]) + payload
+    return base58.encode_check(result)
 
 
 def b58cdecode(enc, prefix=None):

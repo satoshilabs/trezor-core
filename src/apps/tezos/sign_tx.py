@@ -3,50 +3,75 @@ import ustruct
 from trezor import wire
 from trezor.crypto import hashlib
 from trezor.crypto.curve import ed25519
-from trezor.messages import TezosContractType
+from trezor.messages import TezosContractType, TezosOperationType
 from trezor.messages.TezosSignedTx import TezosSignedTx
 
 from apps.common import seed
-from apps.tezos.helpers import TEZOS_CURVES, b58cencode
+from apps.tezos.helpers import (
+    b58cencode,
+    get_curve_module,
+    get_curve_name,
+    get_sig_prefix,
+    get_address_prefix,
+)
 from apps.tezos.layout import *
 
 
 async def tezos_sign_tx(ctx, msg):
     address_n = msg.address_n or ()
-    node = await seed.derive_node(ctx, address_n, "ed25519")
+    curve = msg.curve or 0
+    operation_type = msg.operation.tag
 
-    # TODO: check if signing differs according to public_key_hash in source
+    node = await seed.derive_node(ctx, address_n, get_curve_name(curve))
 
-    # operation_bytes = msg.operation_bytes
-    # operation_hashed_bytes = hashlib.blake2b(operation_bytes, outlen=32).digest()
-    # signature = ed25519.sign(node.private_key(), operation_hashed_bytes)
+    source = _get_address_from_contract(msg.operation.source)
 
-    # sig_op_contents = operation_bytes + signature
-    # sig_op_contents_blaked = hashlib.blake2b(sig_op_contents, outlen=32).digest()
-    # operation_hash = b58cencode(sig_op_contents_blaked, prefix='o')
+    if operation_type == TezosOperationType.Transaction:
+        to = _get_address_from_contract(msg.transaction.destination)
+        await require_confirm_tx(ctx, to, msg.transaction.amount)
+        await require_confirm_fee(ctx, msg.transaction.amount, msg.operation.fee)
 
-    to = _get_address_by_type(msg.transaction.destination)
+    elif operation_type == TezosOperationType.Origination:
+        to = _get_address_by_tag(msg.origination.delegate)
+        # TODO: the "to" acc will be probably unknown
+        await require_confirm_origination(ctx, source)
+        await require_confirm_originate(ctx, to, msg.operation.fee)
 
-    # print(list(_get_operation_bytes(msg)))
+    elif operation_type == TezosOperationType.Delegation:
+        to = _get_address_by_tag(msg.delegation.delegate)
+        await require_confirm_delegation(ctx, source)
+        await require_confirm_delegate(ctx, to, msg.operation.fee)
 
-    # TODO: raise invalid operation type if not supported
+    else:
+        raise wire.DataError("Invalid operation type")
 
-    await require_confirm_delegation(ctx, to, msg.operation.fee)
-    # TODO: show layout according to OperationType
-    await require_confirm_tx(ctx, to, msg.transaction.amount)
-    await require_confirm_fee(ctx, msg.transaction.amount, msg.operation.fee)
+    opbytes = _get_operation_bytes(msg)
+
+    opbytes_hash = hashlib.blake2b(opbytes, outlen=32).digest()
+    curve_module = get_curve_module(curve)
+    signature = curve_module.sign(node.private_key(), opbytes_hash)
+
+    sig_op_contents = opbytes + signature
+    sig_op_contents_hash = hashlib.blake2b(sig_op_contents, outlen=32).digest()
+    ophash = b58cencode(sig_op_contents_hash, prefix="o")
+
+    sig_prefixed = b58cencode(signature, prefix=get_sig_prefix(curve))
 
     return TezosSignedTx(
-        signature=bytes([1, 2, 3]),
-        sig_op_contents=bytes([1, 2, 3]),
-        operation_hash="testhash",
+        signature=sig_prefixed,
+        sig_op_contents=sig_op_contents,
+        operation_hash=ophash,
     )
 
 
-def _get_address_by_type(address):
+def _get_address_by_tag(address_hash):
+    tag = int(address_hash[0])
+    return b58cencode(address_hash[1:], prefix=get_address_prefix(tag))
+
+
+def _get_address_from_contract(address):
     if address.tag == TezosContractType.Implicit:
-        # TODO: check if the prefix differs according to hash tag
-        return b58cencode(address.hash[1:], prefix="tz1")
+        return _get_address_by_tag(address.hash)
 
     elif address.tag == TezosContractType.Originated:
         return b58cencode(address.hash[:-1], prefix="KT1")
@@ -85,7 +110,7 @@ def _get_operation_bytes(msg):
     else:
         raise wire.DataError("Invalid operation type")
 
-    return result
+    return bytes(result)
 
 
 def _encode_contract_id(contract_id):
