@@ -47,9 +47,12 @@ async def tezos_sign_tx(ctx, msg):
 
     opbytes = _get_operation_bytes(msg)
 
-    opbytes_hash = hashlib.blake2b(opbytes, outlen=32).digest()
+    watermark = bytes([3])
+    wm_opbytes = watermark + opbytes
+    wm_opbytes_hash = hashlib.blake2b(wm_opbytes, outlen=32).digest()
+
     curve_module = get_curve_module(curve)
-    signature = curve_module.sign(node.private_key(), opbytes_hash)
+    signature = curve_module.sign(node.private_key(), wm_opbytes_hash)
 
     sig_op_contents = opbytes + signature
     sig_op_contents_hash = hashlib.blake2b(sig_op_contents, outlen=32).digest()
@@ -108,7 +111,7 @@ def _get_operation_bytes(msg):
         result += _encode_data_with_bool_prefix(msg.delegation.delegate)
 
     else:
-        raise wire.DataError("Invalid operation type")
+        raise wire.DataError("Operation data not found")
 
     return bytes(result)
 
