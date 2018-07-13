@@ -51,7 +51,7 @@ async def require_confirm_delegate(ctx, to, fee):
 
 
 def split_address(address):
-    return chunks(address, 17)
+    return chunks(address, 18)
 
 
 def format_amount(value):
