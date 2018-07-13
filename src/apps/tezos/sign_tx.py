@@ -9,10 +9,10 @@ from trezor.messages.TezosSignedTx import TezosSignedTx
 from apps.common import seed
 from apps.tezos.helpers import (
     b58cencode,
+    get_address_prefix,
     get_curve_module,
     get_curve_name,
     get_sig_prefix,
-    get_address_prefix,
 )
 from apps.tezos.layout import *
 
@@ -61,9 +61,7 @@ async def tezos_sign_tx(ctx, msg):
     sig_prefixed = b58cencode(signature, prefix=get_sig_prefix(curve))
 
     return TezosSignedTx(
-        signature=sig_prefixed,
-        sig_op_contents=sig_op_contents,
-        operation_hash=ophash,
+        signature=sig_prefixed, sig_op_contents=sig_op_contents, operation_hash=ophash
     )
 
 
