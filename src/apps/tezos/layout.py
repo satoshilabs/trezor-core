@@ -56,5 +56,4 @@ def split_address(address):
 
 
 def format_amount(value):
-    # TODO: divide value
-    return "%s XTZ" % int(value)
+    return "%s XTZ" % (int(value) / 1000000)
