@@ -6,6 +6,7 @@ from apps.tezos.sign_tx import _get_address_from_contract
 
 
 class TestTezosAddress(unittest.TestCase):
+
     def test_get_address_from_contract(self):
         contracts = [
             TezosContractID(
