@@ -22,17 +22,17 @@ async def require_confirm_fee(ctx, value, fee):
     await require_hold_to_confirm(ctx, text, ButtonRequestType.SignTx)
 
 
-async def require_confirm_origination(ctx, source):
+async def require_confirm_origination(ctx, address):
     text = Text("Confirm origination", ui.ICON_SEND, icon_color=ui.ORANGE)
-    text.normal("Address:")
-    text.mono(*split_address(source))
+    text.normal("Originate address")
+    text.mono(*split_address(address))
     return await require_confirm(ctx, text, ButtonRequestType.SignTx)
 
 
-async def require_confirm_originate(ctx, new_account, fee):
+async def require_confirm_origination_fee(ctx, address, fee):
     text = Text("Confirm origination", ui.ICON_SEND, icon_color=ui.ORANGE)
     text.bold("fee: " + format_amount(fee))
-    text.mono(*split_address(new_account))
+    text.mono(*split_address(address))
     await require_hold_to_confirm(ctx, text, ButtonRequestType.SignTx)
 
 
@@ -46,6 +46,7 @@ async def require_confirm_delegation(ctx, source):
 async def require_confirm_delegate(ctx, to, fee):
     text = Text("Confirm delegation", ui.ICON_SEND, icon_color=ui.BLUE)
     text.bold("fee: " + format_amount(fee))
+    text.normal("to")
     text.mono(*split_address(to))
     await require_hold_to_confirm(ctx, text, ButtonRequestType.SignTx)
 

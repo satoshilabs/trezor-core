@@ -32,10 +32,8 @@ async def tezos_sign_tx(ctx, msg):
         await require_confirm_fee(ctx, msg.transaction.amount, msg.operation.fee)
 
     elif operation_type == TezosOperationType.Origination:
-        to = _get_address_by_tag(msg.origination.delegate)
-        # TODO: the "to" acc will be probably unknown
         await require_confirm_origination(ctx, source)
-        await require_confirm_originate(ctx, to, msg.operation.fee)
+        await require_confirm_originate(ctx, source, msg.operation.fee)
 
     elif operation_type == TezosOperationType.Delegation:
         to = _get_address_by_tag(msg.delegation.delegate)
