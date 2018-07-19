@@ -89,12 +89,15 @@ def _get_operation_bytes(msg):
     result += _encode_zarith(msg.operation.gas_limit)
     result += _encode_zarith(msg.operation.storage_limit)
 
+    if msg.reveal is not None:
+
     if msg.transaction is not None:
         # transaction part
         result += _encode_zarith(msg.transaction.amount)
         result += _encode_contract_id(msg.transaction.destination)
         result += _encode_data_with_bool_prefix(msg.transaction.parameters)
-    elif msg.origination is not None:
+    
+    if msg.origination is not None:
         # origination part
         result += msg.origination.manager_pubkey
         result += _encode_zarith(msg.origination.balance)
@@ -102,14 +105,16 @@ def _get_operation_bytes(msg):
         result += _encode_bool(msg.origination.delegatable)
         result += _encode_data_with_bool_prefix(msg.origination.delegate)
         result += _encode_data_with_bool_prefix(msg.origination.script)
-    elif msg.delegation is not None:
+
+    if msg.delegation is not None:
         # delegation part
         result += _encode_data_with_bool_prefix(msg.delegation.delegate)
 
-    else:
-        raise wire.DataError("Operation data not found")
-
     return bytes(result)
+
+
+def _encode_common(operation):
+
 
 
 def _encode_contract_id(contract_id):
