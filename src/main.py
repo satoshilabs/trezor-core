@@ -13,6 +13,7 @@ import apps.homescreen
 import apps.management
 import apps.wallet
 import apps.ethereum
+import apps.tezos
 import apps.lisk
 import apps.nem
 import apps.stellar
@@ -27,6 +28,7 @@ apps.homescreen.boot()
 apps.management.boot()
 apps.wallet.boot()
 apps.ethereum.boot()
+apps.tezos.boot()
 apps.lisk.boot()
 apps.nem.boot()
 apps.stellar.boot()
