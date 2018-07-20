@@ -40,13 +40,20 @@ async def tezos_sign_tx(ctx, msg):
         await require_confirm_fee(ctx, msg.transaction.amount, msg.transaction.fee)
 
     elif msg.origination is not None:
+        source = _get_address_from_contract(msg.origination.source)
         await require_confirm_origination(ctx, source)
-        await require_confirm_originate(ctx, source, msg.origination.fee)
+        await require_confirm_origination_fee(ctx, source, msg.origination.fee)
 
     elif msg.delegation is not None:
-        to = _get_address_by_tag(msg.delegation.delegate)
-        await require_confirm_delegation(ctx, source)
-        await require_confirm_delegate(ctx, to, msg.delegation.fee)
+        source = _get_address_from_contract(msg.delegation.source)
+
+        if msg.delegation.delegate is not None:
+            to = _get_address_by_tag(msg.delegation.delegate)
+            await require_confirm_delegation(ctx, source)
+            await require_confirm_set_delegate(ctx, to, msg.delegation.fee)
+        # if account registers itself as a delegate
+        else:
+            await require_confirm_register_delegate(ctx, source, msg.delegation.fee)
 
     else:
         raise wire.DataError("Invalid operation")

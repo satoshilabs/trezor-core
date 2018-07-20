@@ -50,11 +50,18 @@ async def require_confirm_delegation(ctx, source):
     return await require_confirm(ctx, text, ButtonRequestType.SignTx)
 
 
-async def require_confirm_delegate(ctx, to, fee):
+async def require_confirm_set_delegate(ctx, to, fee):
     text = Text("Confirm delegation", ui.ICON_SEND, icon_color=ui.BLUE)
     text.bold("fee: " + format_amount(fee))
     text.normal("to")
     text.mono(*split_address(to))
+    await require_hold_to_confirm(ctx, text, ButtonRequestType.SignTx)
+
+
+async def require_confirm_register_delegate(ctx, address, fee):
+    text = Text("Create delegate", ui.ICON_SEND, icon_color=ui.BLUE)
+    text.bold("fee: " + format_amount(fee))
+    text.mono(*split_address(address))
     await require_hold_to_confirm(ctx, text, ButtonRequestType.SignTx)
 
 
