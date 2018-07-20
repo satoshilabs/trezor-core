@@ -3,7 +3,8 @@ import ustruct
 from trezor import wire
 from trezor.crypto import hashlib
 from trezor.crypto.curve import ed25519
-from trezor.messages import TezosContractType, TezosOperationType
+from trezor.messages import TezosContractType
+from trezor.messages.TezosContractID import TezosContractID
 from trezor.messages.TezosSignedTx import TezosSignedTx
 
 from apps.common import seed
@@ -12,6 +13,7 @@ from apps.tezos.helpers import (
     get_address_prefix,
     get_curve_module,
     get_curve_name,
+    get_pk_prefix,
     get_sig_prefix,
 )
 from apps.tezos.layout import *
@@ -20,28 +22,34 @@ from apps.tezos.layout import *
 async def tezos_sign_tx(ctx, msg):
     address_n = msg.address_n or ()
     curve = msg.curve or 0
-    operation_type = msg.operation.tag
 
     node = await seed.derive_node(ctx, address_n, get_curve_name(curve))
 
-    source = _get_address_from_contract(msg.operation.source)
+    # when the account sends first operation in lifetime,
+    # we need to reveal its publickey
+    if msg.reveal is not None:
+        curve_pk = msg.reveal.public_key[0]
+        pk_prefixed = b58cencode(
+            msg.reveal.public_key[1:], prefix=get_pk_prefix(curve_pk)
+        )
+        await require_confirm_reveal(ctx, pk_prefixed)
 
-    if operation_type == TezosOperationType.Transaction:
+    if msg.transaction is not None:
         to = _get_address_from_contract(msg.transaction.destination)
         await require_confirm_tx(ctx, to, msg.transaction.amount)
-        await require_confirm_fee(ctx, msg.transaction.amount, msg.operation.fee)
+        await require_confirm_fee(ctx, msg.transaction.amount, msg.transaction.fee)
 
-    elif operation_type == TezosOperationType.Origination:
+    elif msg.origination is not None:
         await require_confirm_origination(ctx, source)
-        await require_confirm_originate(ctx, source, msg.operation.fee)
+        await require_confirm_originate(ctx, source, msg.origination.fee)
 
-    elif operation_type == TezosOperationType.Delegation:
+    elif msg.delegation is not None:
         to = _get_address_by_tag(msg.delegation.delegate)
         await require_confirm_delegation(ctx, source)
-        await require_confirm_delegate(ctx, to, msg.operation.fee)
+        await require_confirm_delegate(ctx, to, msg.delegation.fee)
 
     else:
-        raise wire.DataError("Invalid operation type")
+        raise wire.DataError("Invalid operation")
 
     opbytes = _get_operation_bytes(msg)
 
@@ -79,42 +87,44 @@ def _get_address_from_contract(address):
 
 
 def _get_operation_bytes(msg):
-    result = msg.operation.branch
-
-    # common part
-    result += ustruct.pack("<b", msg.operation.tag)
-    result += _encode_contract_id(msg.operation.source)
-    result += _encode_zarith(msg.operation.fee)
-    result += _encode_zarith(msg.operation.counter)
-    result += _encode_zarith(msg.operation.gas_limit)
-    result += _encode_zarith(msg.operation.storage_limit)
+    result = msg.branch
 
     if msg.reveal is not None:
+        result += _encode_common(msg.reveal, "reveal")
+        result += msg.reveal.public_key
 
+    # transaction operation
     if msg.transaction is not None:
-        # transaction part
+        result += _encode_common(msg.transaction, "transaction")
         result += _encode_zarith(msg.transaction.amount)
         result += _encode_contract_id(msg.transaction.destination)
         result += _encode_data_with_bool_prefix(msg.transaction.parameters)
-    
-    if msg.origination is not None:
-        # origination part
+    # origination operation
+    elif msg.origination is not None:
+        result += _encode_common(msg.origination, "origination")
         result += msg.origination.manager_pubkey
         result += _encode_zarith(msg.origination.balance)
         result += _encode_bool(msg.origination.spendable)
         result += _encode_bool(msg.origination.delegatable)
         result += _encode_data_with_bool_prefix(msg.origination.delegate)
         result += _encode_data_with_bool_prefix(msg.origination.script)
-
-    if msg.delegation is not None:
-        # delegation part
+    # delegation operation
+    elif msg.delegation is not None:
+        result += _encode_common(msg.delegation, "delegation")
         result += _encode_data_with_bool_prefix(msg.delegation.delegate)
 
     return bytes(result)
 
 
-def _encode_common(operation):
-
+def _encode_common(operation, str_operation):
+    operation_tags = {"reveal": 7, "transaction": 8, "origination": 9, "delegation": 10}
+    result = ustruct.pack("<b", operation_tags[str_operation])
+    result += _encode_contract_id(operation.source)
+    result += _encode_zarith(operation.fee)
+    result += _encode_zarith(operation.counter)
+    result += _encode_zarith(operation.gas_limit)
+    result += _encode_zarith(operation.storage_limit)
+    return result
 
 
 def _encode_contract_id(contract_id):

@@ -6,6 +6,13 @@ from trezor.utils import chunks
 from apps.common.confirm import *
 
 
+async def require_confirm_reveal(ctx, pk):
+    text = Text("Confirm reveal", ui.ICON_SEND, icon_color=ui.GREEN)
+    text.normal("Public Key:")
+    text.mono(*split_address(pk))
+    return await require_confirm(ctx, text, ButtonRequestType.SignTx)
+
+
 async def require_confirm_tx(ctx, to, value):
     text = Text("Confirm sending", ui.ICON_SEND, icon_color=ui.GREEN)
     text.bold(format_amount(value))
