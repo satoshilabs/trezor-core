@@ -55,6 +55,7 @@
 void display_init(void);
 void display_refresh(void);
 void display_save(const char *prefix);
+void display_identify(void);
 
 // provided by common
 

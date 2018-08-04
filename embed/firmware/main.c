@@ -52,6 +52,7 @@ int main(void)
     touch_init();
     touch_power_on();
 
+    display_identify();
     display_clear();
 
     printf("CORE: Preparing stack\n");

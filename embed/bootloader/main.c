@@ -229,6 +229,7 @@ static void check_bootloader_version(void)
 int main(void)
 {
 main_start:
+    display_identify();
     display_clear();
 
 #if PRODUCTION
