@@ -342,6 +342,7 @@ int main(void)
     sbu_init();
     usb_init_all();
 
+    display_identify();
     display_clear();
     draw_border(1, 3);
 

@@ -68,6 +68,7 @@ int main(void)
     touch_init();
 
     display_orientation(0);
+    display_identify();
     display_clear();
     display_backlight(255);
 

@@ -47,7 +47,7 @@ static uint32_t read_display_id(uint8_t command) {
     return id;
 }
 
-static uint32_t display_identify(void)
+void display_identify(void)
 {
     uint32_t id = read_display_id(0x04);    // RDDID: Read Display ID
     // the default RDDID for ILI9341 should be 0x8000.
@@ -59,7 +59,7 @@ static uint32_t display_identify(void)
             id = id4;
         }
     }
-    return id;
+    DISPLAY_ID = id;
 }
 
 static void __attribute__((unused)) display_sleep(void)
@@ -150,8 +150,6 @@ static void display_hardware_reset(void)
     HAL_Delay(10);
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, GPIO_PIN_SET); // LCD_RST/PC14
     HAL_Delay(120); // max wait time for hardware reset is 120 milliseconds (experienced display flakiness using only 5ms wait before sending commands)
-    // identify the controller we will communicate with
-    DISPLAY_ID = display_identify();
 }
 
 void display_init(void)
@@ -260,6 +258,7 @@ void display_init(void)
     HAL_SRAM_Init(&external_display_data_sram, &normal_mode_timing, NULL);
 
     display_hardware_reset();
+    display_identify(); // identify the controller we will communicate with
 
     if (DISPLAY_ID == DISPLAY_ID_GC9307) {
         CMD(0xFE);  // Inter Register Enable1
