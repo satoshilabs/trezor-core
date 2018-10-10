@@ -78,7 +78,14 @@ char* profile_dir() {
         path = strdup(trezor_profile);
     } else {
     // TREZOR_PROFILE is just a profile name and will be put in ~/.trezoremu/
-        asprintf(&path, "%s/" PROFILE_HOMEDOT "/%s/", getenv("HOME"), trezor_profile);
+        int print_length = asprintf(&path, "%s/" PROFILE_HOMEDOT "/%s/", getenv("HOME"), trezor_profile);
+        if (print_length == -1) {
+            path = NULL;
+        }
+    }
+
+    if (!path) { // last resort fallback
+        path = "/var/tmp";
     }
 
     _profile_dir = path;
@@ -91,7 +98,10 @@ char* profile_flash_path() {
     if (_flash_path)
         return _flash_path;
 
-    asprintf(&_flash_path, "%s/trezor.flash", profile_dir());
+    int print_length = asprintf(&_flash_path, "%s/trezor.flash", profile_dir());
+    if (print_length == -1) {
+        _flash_path = NULL;
+    }
 
     if (!_flash_path) { // last resort fallback
         _flash_path = "/var/tmp/trezor.flash";
@@ -105,7 +115,10 @@ char* profile_sdcard_path() {
     if (_sdcard_path)
         return _sdcard_path;
 
-    asprintf(&_sdcard_path, "%s/trezor.sdcard", profile_dir());
+    int print_length = asprintf(&_sdcard_path, "%s/trezor.sdcard", profile_dir());
+    if (print_length == -1) {
+        _sdcard_path = NULL;
+    }
 
     if (!_sdcard_path) { // last resort fallback
         _sdcard_path = "/var/tmp/trezor.sdcard";
