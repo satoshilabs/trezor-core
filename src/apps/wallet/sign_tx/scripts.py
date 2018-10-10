@@ -1,6 +1,6 @@
-from trezor.crypto.hashlib import ripemd160, sha256
 from trezor.messages.MultisigRedeemScriptType import MultisigRedeemScriptType
 
+from apps.common.coininfo import CoinInfo
 from apps.common.writers import empty_bytearray
 from apps.wallet.sign_tx.multisig import multisig_get_pubkeys
 from apps.wallet.sign_tx.writers import (
@@ -192,6 +192,7 @@ def input_script_multisig(
     signature: bytes,
     signature_index: int,
     sighash: int,
+    coin: CoinInfo,
 ):
     signatures = multisig.signatures  # other signatures
     if len(signatures[signature_index]) > 0:
@@ -199,10 +200,12 @@ def input_script_multisig(
     signatures[signature_index] = signature  # our signature
 
     w = bytearray()
-    # Starts with OP_FALSE because of an old OP_CHECKMULTISIG bug, which
-    # consumes one additional item on the stack:
-    # https://bitcoin.org/en/developer-guide#standard-transactions
-    w.append(0x00)
+
+    if not coin.decred:
+        # Starts with OP_FALSE because of an old OP_CHECKMULTISIG bug, which
+        # consumes one additional item on the stack:
+        # https://bitcoin.org/en/developer-guide#standard-transactions
+        w.append(0x00)
 
     for s in signatures:
         if len(s):
@@ -261,9 +264,3 @@ def append_pubkey(w: bytearray, pubkey: bytes) -> bytearray:
     write_op_push(w, len(pubkey))
     write_bytes(w, pubkey)
     return w
-
-
-def sha256_ripemd160_digest(b: bytes) -> bytes:
-    h = sha256(b).digest()
-    h = ripemd160(h).digest()
-    return h

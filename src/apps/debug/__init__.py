@@ -38,6 +38,7 @@ if __debug__:
         return m
 
     def boot():
+
         # wipe storage when debug build is used
         if not utils.EMULATOR:
             storage.wipe()
