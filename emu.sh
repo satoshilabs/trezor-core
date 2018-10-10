@@ -11,30 +11,17 @@ SOURCE_PY_DIR="${SOURCE_PY_DIR:-src}"
 
 ARGS="-O${PYOPT} -X heapsize=${HEAPSIZE}"
 
-OPERATING_SYSTEM=$(uname)
-
-LIB_OVERRIDE_PATH="${PWD}/tools/hotpatch/lib_overrides.so"
-ENV_LIB_OVERRIDE="LD_PRELOAD=${LIB_OVERRIDE_PATH}"
-if [ $OPERATING_SYSTEM == "Darwin" ]; then
-    ENV_LIB_OVERRIDE="DYLD_INSERT_LIBRARIES=${LIB_OVERRIDE_PATH}"
-fi
-
 cd `dirname $0`/$SOURCE_PY_DIR
 
 case "$1" in
-    # persist the flash memory upon exit so you don't need to reinitalize the device every run
-    "--persist")
-        shift
-        DYLD_FORCE_FLAT_NAMESPACE=1 DYLD_INSERT_LIBRARIES=${LIB_OVERRIDE_PATH} ../$EXE $ARGS $* $MAIN
-        ;;
-    "--persist-lldb")
-        shift
-        LLDB_SET_ENV="settings set target.env-vars ${ENV_LIB_OVERRIDE}"
-        PATH=/usr/bin /usr/bin/lldb -s <(echo "${LLDB_SET_ENV}") -f ../$EXE -- $ARGS $* $MAIN
-        ;;
     "-d")
         shift
-        gdb --args ../$EXE $ARGS $* $MAIN
+        OPERATING_SYSTEM=$(uname)
+        if [ $OPERATING_SYSTEM == "Darwin" ]; then
+            PATH=/usr/bin /usr/bin/lldb -f ../$EXE -- $ARGS $* $MAIN
+        else
+            gdb --args ../$EXE $ARGS $* $MAIN
+        fi
         ;;
     "-r")
         shift
