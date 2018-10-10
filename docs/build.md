@@ -110,19 +110,3 @@ and the firmware runtime memory limit HEAPSIZE may have to be increased.
 ```sh
 DEBUG_BUILD=1 make build_unix
 ```
-
-To prevent the emulator from deleting the flash cache you need tobuild the hotpatch tool.
-
-```sh
-cd tools/hotpatch
-make
-cd -
-```
-
-Now you can run the emulator repeatedly without loosing configuration like so:
-
-```sh
-HEAPSIZE=50M ./emu.sh --persist
-```
-
-
