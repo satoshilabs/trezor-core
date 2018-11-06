@@ -1,8 +1,11 @@
 from common import *
 from trezor.crypto import bip32, bip39
+from trezor.utils import HashWriter
 
 from apps.common import coins
+from apps.wallet.sign_tx.addresses import *
 from apps.wallet.sign_tx.signing import *
+from apps.wallet.sign_tx.writers import *
 
 
 class TestAddress(unittest.TestCase):
