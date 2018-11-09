@@ -65,6 +65,26 @@ class CoinInfo:
 # fmt: off
 COINS = [
     CoinInfo(
+        coin_name="Actinium",
+        coin_shortcut="ACM",
+        address_type=53,
+        address_type_p2sh=55,
+        maxfee_kb=40000000,
+        signed_message_header="Actinium Signed Message:\n",
+        xpub_magic=0x0488b21e,
+        xpub_magic_segwit_p2sh=0x049d7cb2,
+        xpub_magic_segwit_native=None,
+        bech32_prefix="acm",
+        cashaddr_prefix=None,
+        slip44=228,
+        segwit=True,
+        fork_id=None,
+        force_bip143=False,
+        bip115=False,
+        decred=False,
+        curve_name='secp256k1',
+    ),
+    CoinInfo(
         coin_name="Bitcoin",
         coin_shortcut="BTC",
         address_type=0,
