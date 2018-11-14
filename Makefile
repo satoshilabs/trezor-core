@@ -39,7 +39,7 @@ CFLAGS += -DGITREV=$(GITREV)
 ## help commands:
 
 help: ## show this help
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "\033[36m  make %-20s\033[0m %s\n", $$1, $$2} /^##(.*)/ {printf "\033[33m%s\n", substr($$0, 4)}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*?## "; first = 1;} /^[a-zA-Z0-9_-]+:.*?## / {printf "\033[36m  make %-20s\033[0m %s\n", $$1, $$2} /^##(.*)/ {if (!first) printf "\n"; printf "\033[33m%s\n", substr($$0, 4); first=0;}' $(MAKEFILE_LIST)
 
 ## dependencies commands:
 
