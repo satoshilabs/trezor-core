@@ -87,7 +87,7 @@ black:
 cstyle: ## run code style check on low-level C code
 	./tools/clang-format-check $(shell find embed -type f -name *.[ch])
 
-## code generation ##
+## code generation:
 
 templates: ## render Mako templates (for lists of coins, tokens, etc.)
 	./tools/build_templates
