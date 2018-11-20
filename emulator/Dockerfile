@@ -11,4 +11,4 @@ RUN pip3 install scons trezor
 RUN make build_unix_noui
 
 ENTRYPOINT ["emulator/run.sh"]
-EXPOSE 21324/udp
+EXPOSE 21324/udp 21325

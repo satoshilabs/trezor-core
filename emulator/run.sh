@@ -2,6 +2,8 @@
 cd "$(dirname "$0")"
 cd ..
 
+export TREZOR_UDP_IP=0.0.0.0
+
 EXE=build/unix/micropython
 PYOPT="${PYOPT:-1}"
 MAIN="${MAIN:-${PWD}/src/main.py}"
