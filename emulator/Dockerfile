@@ -3,6 +3,7 @@ FROM python:3.7.1-stretch
 WORKDIR /trezor-emulator
 
 COPY ./ /trezor-emulator
+RUN git submodule update --init --recursive
 
 RUN apt-get update
 RUN apt-get install libusb-1.0-0
