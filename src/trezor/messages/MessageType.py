@@ -169,3 +169,7 @@ MoneroGetWatchKey = 542
 MoneroWatchKey = 543
 DebugMoneroDiagRequest = 546
 DebugMoneroDiagAck = 547
+HyconGetAddress = 700
+HyconAddress = 701
+HyconSignTx = 702
+HyconSignedTx = 703
