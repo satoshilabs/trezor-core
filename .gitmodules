@@ -5,8 +5,9 @@
 	path = vendor/micropython
 	url = https://github.com/trezor/micropython.git
 [submodule "vendor/trezor-common"]
-	path = vendor/trezor-common
-	url = https://github.com/trezor/trezor-common.git
+    path = vendor/trezor-common
+    branch = onegram
+	url = https://gitlab.com/trezor-onegram/trezor-common.git
 [submodule "vendor/nanopb"]
 	path = vendor/nanopb
 	url = https://github.com/nanopb/nanopb.git
