@@ -3,5 +3,4 @@ from trezor.messages import MessageType
 
 
 def boot():
-    # TODO: trigger functions
-    pass
+    wire.add(MessageType.OnegramGetPublicKey, __name__, "get_public_key")

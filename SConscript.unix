@@ -32,6 +32,7 @@ CPPDEFINES_MOD += [
     ('USE_MONERO', '1'),
     ('USE_CARDANO', '1'),
     ('USE_NEM', '1'),
+    ('USE_ONEGRAM', '1'),
 ]
 SOURCE_MOD += [
     'embed/extmod/modtrezorcrypto/modtrezorcrypto.c',
