@@ -10,5 +10,6 @@ build and push emulator image:
     - docker login $CI_REGISTRY -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD
   when: manual
   script:
-    - docker-compose -f ./emulator/docker-compose.yml build
-    - docker-compose -f ./emulator/docker-compose.yml push
+    - docker-compose -f ./docker/emulator/docker-compose.yml build
+    - docker-compose -f ./docker/emulator/docker-compose.yml push
+  
