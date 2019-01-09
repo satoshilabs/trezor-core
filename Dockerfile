@@ -22,13 +22,12 @@ RUN if [ "$TOOLCHAIN_FLAVOR" = "src" ]; then \
 
 # download toolchain
 
-ENV TOOLCHAIN_SHORTVER=7-2018q2
-ENV TOOLCHAIN_LONGVER=gcc-arm-none-eabi-7-2018-q2-update
-ENV TOOLCHAIN_URL=https://developer.arm.com/-/media/Files/downloads/gnu-rm/$TOOLCHAIN_SHORTVER/$TOOLCHAIN_LONGVER-$TOOLCHAIN_FLAVOR.tar.bz2
+ENV TOOLCHAIN_URL=https://developer.arm.com/-/media/Files/downloads/gnu-rm/8-2018q4/gcc-arm-none-eabi-8-2018-q4-major-$TOOLCHAIN_FLAVOR.tar.bz2
+ENV TOOLCHAIN_SHA256SUM=fb31fbdfe08406ece43eef5df623c0b2deb8b53e405e2c878300f7a1f303ee52
 
 # extract toolchain
 
-RUN cd /opt && wget $TOOLCHAIN_URL && tar xfj $TOOLCHAIN_LONGVER-$TOOLCHAIN_FLAVOR.tar.bz2
+RUN cd /opt && wget -O gcc.tar.bz2 $TOOLCHAIN_URL && echo "${TOOLCHAIN_SHA256SUM} gcc.tar.bz2" | sha256sum -c && tar xfj gcc.tar.bz2
 
 # build toolchain (if required)
 
