@@ -2,8 +2,8 @@ version: '3'
 services:
   trezor-emulator:
     build:
-      context: '../'
-      dockerfile: "emulator/Dockerfile"
+      context: '../../'
+      dockerfile: "docker/emulator/Dockerfile"
     image: ${CI_REGISTRY_IMAGE}/trezor-emulator:latest
     ports:
       - "127.0.0.1:21324:21324/udp"
