@@ -16,16 +16,13 @@ class EthereumGetPublicKey(p.MessageType):
         self,
         address_n: List[int] = None,
         show_display: bool = None,
-        chain_id: int = None,
     ) -> None:
         self.address_n = address_n if address_n is not None else []
         self.show_display = show_display
-        self.chain_id = chain_id
 
     @classmethod
     def get_fields(cls):
         return {
             1: ('address_n', p.UVarintType, p.FLAG_REPEATED),
             2: ('show_display', p.BoolType, 0),
-            3: ('chain_id', p.UVarintType, 0),
         }
