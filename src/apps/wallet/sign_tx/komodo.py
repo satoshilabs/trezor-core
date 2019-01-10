@@ -92,7 +92,7 @@ class Zip143:
         write_bytes(h_preimage, bytearray(self.get_sequence_hash()))  # 4. hashSequence
         write_bytes(h_preimage, bytearray(self.get_outputs_hash()))  # 5. hashOutputs
         write_bytes(h_preimage, b"\x00" * 32)  # 6. hashJoinSplits
-        write_uint32(h_preimage, tx.lock_time)  # 7. nLockTime - ca333 ensure locktime is set as a recent timestamp for reward!
+        write_uint32(h_preimage, tx.lock_time - 777)  # 7. nLockTime - ca333 ensure locktime is set as a recent timestamp for reward!
         write_uint32(h_preimage, tx.expiry)  # 8. expiryHeight
         write_uint32(h_preimage, sighash)  # 9. nHashType
 
@@ -139,7 +139,7 @@ class Zip243(Zip143):
         write_bytes(h_preimage, b"\x00" * 32)  # 6. hashJoinSplits
         write_bytes(h_preimage, b"\x00" * 32)  # 7. hashShieldedSpends
         write_bytes(h_preimage, b"\x00" * 32)  # 8. hashShieldedOutputs
-        write_uint32(h_preimage, tx.lock_time)  # 9. nLockTime - ca333 ensure locktime is set as a recent timestamp for reward!
+        write_uint32(h_preimage, tx.lock_time - 777)  # 9. nLockTime - ca333 ensure locktime is set as a recent timestamp for reward!
         write_uint32(h_preimage, tx.expiry)  # 10. expiryHeight
         write_uint64(h_preimage, 0)  # 11. valueBalance
         write_uint32(h_preimage, sighash)  # 12. nHashType
