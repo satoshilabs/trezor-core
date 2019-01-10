@@ -12,4 +12,3 @@ build and push emulator image:
   script:
     - docker-compose -f ./docker/emulator/docker-compose.yml build
     - docker-compose -f ./docker/emulator/docker-compose.yml push
-  
