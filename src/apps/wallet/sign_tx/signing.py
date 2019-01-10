@@ -25,6 +25,7 @@ from apps.wallet.sign_tx import (
     tx_weight,
     writers,
     zcash,
+    komodo
 )
 
 # the number of bip32 levels used in a wallet (chain and address)
@@ -64,11 +65,21 @@ async def check_tx_fee(tx: SignTx, keychain: seed.Keychain):
     if coin.decred:
         hash143 = decred.DecredPrefixHasher(tx)  # pseudo BIP-0143 prefix hashing
         tx_ser = TxRequestSerializedType()
-    elif tx.overwintered:
+    elif coin.zcash and tx.overwintered:
         if tx.version == 3:
             hash143 = zcash.Zip143()  # ZIP-0143 transaction hashing
         elif tx.version == 4:
             hash143 = zcash.Zip243()  # ZIP-0243 transaction hashing
+        else:
+            raise SigningError(
+                FailureType.DataError,
+                "Unsupported version for overwintered transaction",
+            )
+    elif coin.komodo and tx.overwintered:
+        if tx.version == 3:
+            hash143 = komodo.Zip143()  # ZIP-0143 transaction hashing
+        elif tx.version == 4:
+            hash143 = komodo.Zip243()  # ZIP-0243 transaction hashing
         else:
             raise SigningError(
                 FailureType.DataError,
