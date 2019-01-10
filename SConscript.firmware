@@ -27,6 +27,7 @@ CPPDEFINES_MOD += [
     'RAND_PLATFORM_INDEPENDENT',
     ('USE_KECCAK', '1'),
     ('USE_ETHEREUM', '1'),
+    ('USE_MONERO', '1'),
     ('USE_CARDANO', '1'),
     ('USE_NEM', '1'),
 ]
@@ -63,6 +64,9 @@ SOURCE_MOD += [
     'vendor/trezor-crypto/ed25519-donna/ed25519-keccak.c',
     'vendor/trezor-crypto/ed25519-donna/ed25519-sha3.c',
     'vendor/trezor-crypto/ed25519-donna/modm-donna-32bit.c',
+    'vendor/trezor-crypto/monero/base58.c',
+    'vendor/trezor-crypto/monero/serialize.c',
+    'vendor/trezor-crypto/monero/xmr.c',
     'vendor/trezor-crypto/groestl.c',
     'vendor/trezor-crypto/hasher.c',
     'vendor/trezor-crypto/hmac.c',
@@ -174,9 +178,9 @@ SOURCE_MICROPYTHON = [
     'vendor/micropython/py/objfun.c',
     'vendor/micropython/py/objgenerator.c',
     'vendor/micropython/py/objgetitemiter.c',
+    'vendor/micropython/py/objint.c',
     'vendor/micropython/py/objint_longlong.c',
     'vendor/micropython/py/objint_mpz.c',
-    'vendor/micropython/py/objint.c',
     'vendor/micropython/py/objlist.c',
     'vendor/micropython/py/objmap.c',
     'vendor/micropython/py/objmodule.c',
@@ -204,8 +208,8 @@ SOURCE_MICROPYTHON = [
     'vendor/micropython/py/qstr.c',
     'vendor/micropython/py/reader.c',
     'vendor/micropython/py/repl.c',
-    'vendor/micropython/py/runtime_utils.c',
     'vendor/micropython/py/runtime.c',
+    'vendor/micropython/py/runtime_utils.c',
     'vendor/micropython/py/scope.c',
     'vendor/micropython/py/sequence.c',
     'vendor/micropython/py/showbc.c',
@@ -236,6 +240,7 @@ SOURCE_STMHAL = [
     'vendor/micropython/lib/stm32lib/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr.c',
     'vendor/micropython/lib/stm32lib/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c',
     'vendor/micropython/lib/stm32lib/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_sd.c',
+    'vendor/micropython/lib/stm32lib/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c',
     'vendor/micropython/lib/stm32lib/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_sram.c',
     'vendor/micropython/lib/stm32lib/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c',
     'vendor/micropython/lib/stm32lib/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c',
@@ -275,14 +280,6 @@ SOURCE_TREZORHAL = [
 
 SOURCE_QSTR = SOURCE_MOD + SOURCE_MICROPYTHON + SOURCE_MICROPYTHON_SPEED
 
-# TODO: recursive Glob
-SOURCE_PY = Glob('src/*.py')
-SOURCE_PY.extend(Glob('src/*/*.py'))
-SOURCE_PY.extend(Glob('src/*/*/*.py'))
-SOURCE_PY.extend(Glob('src/*/*/*/*.py'))
-SOURCE_PY.extend(Glob('src/*/*/*/*/*.py'))
-SOURCE_PY_DIR = 'src/'
-
 env = Environment(ENV=os.environ, CFLAGS='%s -DPRODUCTION=%s -DPYOPT=%s' % (ARGUMENTS.get('CFLAGS', ''), ARGUMENTS.get('PRODUCTION', '0'), PYOPT))
 
 env.Tool('micropython')
@@ -300,18 +297,29 @@ env.Replace(
     OBJCOPY='arm-none-eabi-objcopy', )
 
 env.Replace(
+    TREZOR_MODEL=env.get('ENV').get('TREZOR_MODEL', 'T'), )
+
+if env.get('TREZOR_MODEL') == 'T':
+    CPU_ASFLAGS = '-mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16'
+    CPU_CCFLAGS = '-mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -mtune=cortex-m4 '
+    CPU_MODEL   = 'STM32F427xx'
+else:
+    CPU_ASFLAGS = '-mthumb -mcpu=cortex-m3 -mfloat-abi=soft'
+    CPU_CCFLAGS = '-mthumb -mtune=cortex-m3 -mcpu=cortex-m3 -mfloat-abi=soft '
+    CPU_MODEL   = 'STM32F405xx'
+
+env.Replace(
     COPT=env.get('ENV').get('OPTIMIZE', '-Os'),
     CCFLAGS='$COPT '
     '-g3 '
     '-nostdlib '
     '-std=gnu99 -Wall -Werror -Wdouble-promotion -Wpointer-arith -fno-common '
-    '-mthumb -mtune=cortex-m4 -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard '
     '-fsingle-precision-constant -fdata-sections -ffunction-sections '
     '-ffreestanding '
     '-fstack-protector-all '
-    + CCFLAGS_MOD,
+    + CPU_CCFLAGS + CCFLAGS_MOD,
     CCFLAGS_QSTR='-DNO_QSTR -DN_X64 -DN_X86 -DN_THUMB',
-    LINKFLAGS='-T embed/firmware/memory.ld -Wl,--gc-sections -Wl,-Map=build/firmware/firmware.map -Wl,--warn-common',
+    LINKFLAGS='-T embed/firmware/memory_${TREZOR_MODEL}.ld -Wl,--gc-sections -Wl,-Map=build/firmware/firmware.map -Wl,--warn-common',
     CPPPATH=[
         '.',
         'embed/firmware',
@@ -324,12 +332,12 @@ env.Replace(
         'vendor/micropython/ports/stm32',
     ] + CPPPATH_MOD,
     CPPDEFINES=[
-        'TREZOR_MODEL_T',
-        'STM32F427xx',
+        ('TREZOR_MODEL', '$TREZOR_MODEL'),
+        CPU_MODEL,
         'USE_HAL_DRIVER',
         ('STM32_HAL_H', '"<stm32f4xx.h>"'),
     ] + CPPDEFINES_MOD,
-    ASFLAGS='-mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16',
+    ASFLAGS=CPU_ASFLAGS,
     ASPPFLAGS='$CFLAGS $CCFLAGS', )
 
 env.Replace(
@@ -373,6 +381,18 @@ env.Ignore(qstr_collected, qstr_generated)
 # Frozen modules
 #
 
+if env.get('TREZOR_MODEL') == '1':
+    SOURCE_PY_DIR = 'src1/'
+else:
+    SOURCE_PY_DIR = 'src/'
+
+# TODO: recursive Glob
+SOURCE_PY = Glob(SOURCE_PY_DIR + '*.py')
+SOURCE_PY.extend(Glob(SOURCE_PY_DIR + '*/*.py'))
+SOURCE_PY.extend(Glob(SOURCE_PY_DIR + '*/*/*.py'))
+SOURCE_PY.extend(Glob(SOURCE_PY_DIR + '*/*/*/*.py'))
+SOURCE_PY.extend(Glob(SOURCE_PY_DIR + '*/*/*/*/*.py'))
+
 source_mpy = env.FrozenModule(source=SOURCE_PY, source_dir=SOURCE_PY_DIR)
 
 source_mpyc = env.FrozenCFile(
@@ -412,14 +432,22 @@ program_elf = env.Command(
     '$LINK -o $TARGET $CCFLAGS $CFLAGS $LINKFLAGS $SOURCES -lc_nano -lm -lgcc',
 )
 
-program_bin = env.Command(
-    target='firmware.bin',
-    source=program_elf,
-    action=[
+if env.get('TREZOR_MODEL') == 'T':
+    action_bin=[
         '$OBJCOPY -O binary -j .vendorheader -j .header -j .flash -j .data --pad-to 0x08100000 $SOURCE ${TARGET}.p1',
         '$OBJCOPY -O binary -j .flash2 $SOURCE ${TARGET}.p2',
         '$CAT ${TARGET}.p1 ${TARGET}.p2 > $TARGET',
         '$BINCTL $TARGET -h',
         '$BINCTL $TARGET -s 1:2 `$KEYCTL sign firmware $TARGET 4747474747474747474747474747474747474747474747474747474747474747 4848484848484848484848484848484848484848484848484848484848484848`' if ARGUMENTS.get('PRODUCTION', '0') == '0' else '',
         '$DD if=$TARGET of=${TARGET}.p1 skip=0 bs=128k count=6',
-    ], )
+    ]
+else:
+    action_bin=[
+        '$OBJCOPY -O binary -j .flash -j .data $SOURCE $TARGET',
+    ]
+
+program_bin = env.Command(
+    target='firmware.bin',
+    source=program_elf,
+    action=action_bin,
+)

@@ -1,8 +1,15 @@
 from common import *
 
 from apps.wallet.sign_tx.signing import *
+from apps.wallet.sign_tx.addresses import *
 from apps.common import coins
 from trezor.crypto import bip32, bip39
+
+
+def node_derive(root, path):
+    node = root.clone()
+    node.derive_path(path)
+    return node
 
 
 class TestAddressGRS(unittest.TestCase):
@@ -60,15 +67,15 @@ class TestAddressGRS(unittest.TestCase):
         root = bip32.from_seed(seed, coin.curve_name)
 
         node = node_derive(root, [84 | 0x80000000, 17 | 0x80000000, 0 | 0x80000000, 1, 0])
-        address = address_p2wpkh(node.public_key(), coin.bech32_prefix)
+        address = address_p2wpkh(node.public_key(), coin)
         self.assertEqual(address, 'grs1qzfpwn55tvkxcw0xwfa0g8k2gtlzlgkcq3z000e')
 
         node = node_derive(root, [84 | 0x80000000, 17 | 0x80000000, 0 | 0x80000000, 1, 1])
-        address = address_p2wpkh(node.public_key(), coin.bech32_prefix)
+        address = address_p2wpkh(node.public_key(), coin)
         self.assertEqual(address, 'grs1qxsgwl66tx7tsuwfm4kk5c5dh6tlfpr4qjqg6gg')
 
         node = node_derive(root, [84 | 0x80000000, 17 | 0x80000000, 0 | 0x80000000, 0, 0])
-        address = address_p2wpkh(node.public_key(), coin.bech32_prefix)
+        address = address_p2wpkh(node.public_key(), coin)
         self.assertEqual(address, 'grs1qw4teyraux2s77nhjdwh9ar8rl9dt7zww8r6lne')
 
 

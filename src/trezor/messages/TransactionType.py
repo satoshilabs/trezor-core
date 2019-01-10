@@ -14,19 +14,6 @@ if __debug__:
 
 
 class TransactionType(p.MessageType):
-    FIELDS = {
-        1: ('version', p.UVarintType, 0),
-        2: ('inputs', TxInputType, p.FLAG_REPEATED),
-        3: ('bin_outputs', TxOutputBinType, p.FLAG_REPEATED),
-        4: ('lock_time', p.UVarintType, 0),
-        5: ('outputs', TxOutputType, p.FLAG_REPEATED),
-        6: ('inputs_cnt', p.UVarintType, 0),
-        7: ('outputs_cnt', p.UVarintType, 0),
-        8: ('extra_data', p.BytesType, 0),
-        9: ('extra_data_len', p.UVarintType, 0),
-        10: ('expiry', p.UVarintType, 0),
-        11: ('overwintered', p.BoolType, 0),
-    }
 
     def __init__(
         self,
@@ -41,6 +28,8 @@ class TransactionType(p.MessageType):
         extra_data_len: int = None,
         expiry: int = None,
         overwintered: bool = None,
+        version_group_id: int = None,
+        timestamp: int = None,
     ) -> None:
         self.version = version
         self.inputs = inputs if inputs is not None else []
@@ -53,3 +42,23 @@ class TransactionType(p.MessageType):
         self.extra_data_len = extra_data_len
         self.expiry = expiry
         self.overwintered = overwintered
+        self.version_group_id = version_group_id
+        self.timestamp = timestamp
+
+    @classmethod
+    def get_fields(cls):
+        return {
+            1: ('version', p.UVarintType, 0),
+            2: ('inputs', TxInputType, p.FLAG_REPEATED),
+            3: ('bin_outputs', TxOutputBinType, p.FLAG_REPEATED),
+            4: ('lock_time', p.UVarintType, 0),
+            5: ('outputs', TxOutputType, p.FLAG_REPEATED),
+            6: ('inputs_cnt', p.UVarintType, 0),
+            7: ('outputs_cnt', p.UVarintType, 0),
+            8: ('extra_data', p.BytesType, 0),
+            9: ('extra_data_len', p.UVarintType, 0),
+            10: ('expiry', p.UVarintType, 0),
+            11: ('overwintered', p.BoolType, 0),
+            12: ('version_group_id', p.UVarintType, 0),
+            13: ('timestamp', p.UVarintType, 0),
+        }

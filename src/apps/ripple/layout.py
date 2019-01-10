@@ -6,13 +6,20 @@ from trezor.utils import format_amount
 from . import helpers
 
 from apps.common.confirm import require_confirm, require_hold_to_confirm
-from apps.common.display_address import split_address
+from apps.common.layout import split_address
 
 
 async def require_confirm_fee(ctx, fee):
     text = Text("Confirm fee", ui.ICON_SEND, icon_color=ui.GREEN)
     text.normal("Transaction fee:")
     text.bold(format_amount(fee, helpers.DIVISIBILITY) + " XRP")
+    await require_confirm(ctx, text, ButtonRequestType.ConfirmOutput)
+
+
+async def require_confirm_destination_tag(ctx, tag):
+    text = Text("Confirm tag", ui.ICON_SEND, icon_color=ui.GREEN)
+    text.normal("Destination tag:")
+    text.bold(str(tag))
     await require_confirm(ctx, text, ButtonRequestType.ConfirmOutput)
 
 

@@ -9,17 +9,18 @@ from trezor.messages import (
     NEMTransfer,
 )
 from trezor.ui.text import Text
-from trezor.utils import format_amount, split_words
+from trezor.utils import format_amount
 
 from ..helpers import (
     NEM_LEVY_PERCENTILE_DIVISOR_ABSOLUTE,
     NEM_MAX_DIVISIBILITY,
     NEM_MOSAIC_AMOUNT_DIVISOR,
 )
-from ..layout import require_confirm_final, require_confirm_text, split_address
+from ..layout import require_confirm_final, require_confirm_text
 from ..mosaic.helpers import get_mosaic_definition, is_nem_xem_mosaic
 
 from apps.common.confirm import require_confirm
+from apps.common.layout import split_address
 
 
 async def ask_transfer(
@@ -67,11 +68,9 @@ async def ask_transfer_mosaic(
     else:
         msg = Text("Confirm mosaic", ui.ICON_SEND, icon_color=ui.RED)
         msg.bold("Unknown mosaic!")
-        msg.normal(
-            *split_words(
-                "Divisibility and levy cannot be shown for unknown mosaics", 22
-            )
-        )
+        msg.normal("Divisibility and levy")
+        msg.normal("cannot be shown for")
+        msg.normal("unknown mosaics")
         await require_confirm(ctx, msg, ButtonRequestType.ConfirmOutput)
 
         msg = Text("Confirm mosaic", ui.ICON_SEND, icon_color=ui.GREEN)
@@ -132,14 +131,12 @@ async def _require_confirm_transfer(ctx, recipient, value):
 async def _require_confirm_payload(ctx, payload: bytearray, encrypt=False):
     payload = bytes(payload).decode()
 
-    if len(payload) > 48:
-        payload = payload[:48] + ".."
     if encrypt:
         text = Text("Confirm payload", ui.ICON_SEND, icon_color=ui.GREEN)
         text.bold("Encrypted:")
-        text.normal(*split_words(payload, 22))
+        text.normal(*payload.split(" "))
     else:
         text = Text("Confirm payload", ui.ICON_SEND, icon_color=ui.RED)
         text.bold("Unencrypted:")
-        text.normal(*split_words(payload, 22))
+        text.normal(*payload.split(" "))
     await require_confirm(ctx, text, ButtonRequestType.ConfirmOutput)

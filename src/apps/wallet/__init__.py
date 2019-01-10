@@ -1,78 +1,24 @@
-from trezor.messages.MessageType import (
-    CipherKeyValue,
-    GetAddress,
-    GetECDHSessionKey,
-    GetEntropy,
-    GetPublicKey,
-    SignIdentity,
-    SignMessage,
-    SignTx,
-    VerifyMessage,
-)
-from trezor.wire import protobuf_workflow, register
-
-
-def dispatch_GetPublicKey(*args, **kwargs):
-    from .get_public_key import get_public_key
-
-    return get_public_key(*args, **kwargs)
-
-
-def dispatch_GetAddress(*args, **kwargs):
-    from .get_address import get_address
-
-    return get_address(*args, **kwargs)
-
-
-def dispatch_GetEntropy(*args, **kwargs):
-    from .get_entropy import get_entropy
-
-    return get_entropy(*args, **kwargs)
-
-
-def dispatch_SignTx(*args, **kwargs):
-    from .sign_tx import sign_tx
-
-    return sign_tx(*args, **kwargs)
-
-
-def dispatch_SignMessage(*args, **kwargs):
-    from .sign_message import sign_message
-
-    return sign_message(*args, **kwargs)
-
-
-def dispatch_VerifyMessage(*args, **kwargs):
-    from .verify_message import verify_message
-
-    return verify_message(*args, **kwargs)
-
-
-def dispatch_SignIdentity(*args, **kwargs):
-    from .sign_identity import sign_identity
-
-    return sign_identity(*args, **kwargs)
-
-
-def dispatch_GetECDHSessionKey(*args, **kwargs):
-    from .ecdh import get_ecdh_session_key
-
-    return get_ecdh_session_key(*args, **kwargs)
-
-
-def dispatch_CipherKeyValue(*args, **kwargs):
-    from .cipher_key_value import cipher_key_value
-
-    return cipher_key_value(*args, **kwargs)
+from trezor import wire
+from trezor.messages import MessageType
 
 
 def boot():
-    register(GetPublicKey, protobuf_workflow, dispatch_GetPublicKey)
-    register(GetAddress, protobuf_workflow, dispatch_GetAddress)
-    register(GetEntropy, protobuf_workflow, dispatch_GetEntropy)
-    register(SignTx, protobuf_workflow, dispatch_SignTx)
-    register(SignMessage, protobuf_workflow, dispatch_SignMessage)
-    register(VerifyMessage, protobuf_workflow, dispatch_VerifyMessage)
-    register(SignIdentity, protobuf_workflow, dispatch_SignIdentity)
-    register(GetECDHSessionKey, protobuf_workflow, dispatch_GetECDHSessionKey)
-    register(CipherKeyValue, protobuf_workflow, dispatch_CipherKeyValue)
+    ns = [
+        ["curve25519"],
+        ["ed25519"],
+        ["ed25519-keccak"],
+        ["nist256p1"],
+        ["secp256k1"],
+        ["secp256k1-decred"],
+        ["secp256k1-groestl"],
+        ["secp256k1-smart"],
+    ]
+    wire.add(MessageType.GetPublicKey, __name__, "get_public_key", ns)
+    wire.add(MessageType.GetAddress, __name__, "get_address", ns)
+    wire.add(MessageType.GetEntropy, __name__, "get_entropy")
+    wire.add(MessageType.SignTx, __name__, "sign_tx", ns)
+    wire.add(MessageType.SignMessage, __name__, "sign_message", ns)
+    wire.add(MessageType.VerifyMessage, __name__, "verify_message")
+    wire.add(MessageType.SignIdentity, __name__, "sign_identity", ns)
+    wire.add(MessageType.GetECDHSessionKey, __name__, "get_ecdh_session_key", ns)
+    wire.add(MessageType.CipherKeyValue, __name__, "cipher_key_value", ns)

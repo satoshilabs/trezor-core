@@ -1,10 +1,15 @@
 from trezor import wire
 from trezor.crypto import rlp
+from trezor.crypto.curve import secp256k1
+from trezor.crypto.hashlib import sha3_256
 from trezor.messages.EthereumSignTx import EthereumSignTx
 from trezor.messages.EthereumTxRequest import EthereumTxRequest
+from trezor.messages.MessageType import EthereumTxAck
 from trezor.utils import HashWriter
 
+from apps.common import paths
 from apps.ethereum import tokens
+from apps.ethereum.address import validate_full_path
 from apps.ethereum.layout import (
     require_confirm_data,
     require_confirm_fee,
@@ -15,11 +20,10 @@ from apps.ethereum.layout import (
 MAX_CHAIN_ID = 2147483629
 
 
-async def ethereum_sign_tx(ctx, msg):
-    from trezor.crypto.hashlib import sha3_256
-
+async def sign_tx(ctx, msg, keychain):
     msg = sanitize(msg)
     check(msg)
+    await paths.validate_path(ctx, validate_full_path, path=msg.address_n)
 
     data_total = msg.data_length
 
@@ -59,7 +63,7 @@ async def ethereum_sign_tx(ctx, msg):
 
     total_length = get_total_length(msg, data_total)
 
-    sha = HashWriter(sha3_256, keccak=True)
+    sha = HashWriter(sha3_256(keccak=True))
     sha.extend(rlp.encode_length(total_length, True))  # total length
 
     if msg.tx_type is not None:
@@ -86,7 +90,9 @@ async def ethereum_sign_tx(ctx, msg):
         sha.extend(rlp.encode(0))
 
     digest = sha.get_digest()
-    return await send_signature(ctx, msg, digest)
+    result = sign_digest(msg, keychain, digest)
+
+    return result
 
 
 def get_total_length(msg: EthereumSignTx, data_total: int) -> int:
@@ -115,8 +121,6 @@ def get_total_length(msg: EthereumSignTx, data_total: int) -> int:
 
 
 async def send_request_chunk(ctx, data_left: int):
-    from trezor.messages.MessageType import EthereumTxAck
-
     # TODO: layoutProgress ?
     req = EthereumTxRequest()
     if data_left <= 1024:
@@ -127,14 +131,11 @@ async def send_request_chunk(ctx, data_left: int):
     return await ctx.call(req, EthereumTxAck)
 
 
-async def send_signature(ctx, msg: EthereumSignTx, digest):
-    from trezor.crypto.curve import secp256k1
-    from apps.common import seed
-
-    address_n = msg.address_n or ()
-    node = await seed.derive_node(ctx, address_n)
-
-    signature = secp256k1.sign(node.private_key(), digest, False, True)
+def sign_digest(msg: EthereumSignTx, keychain, digest):
+    node = keychain.derive(msg.address_n)
+    signature = secp256k1.sign(
+        node.private_key(), digest, False, secp256k1.CANONICAL_SIG_ETHEREUM
+    )
 
     req = EthereumTxRequest()
     req.signature_v = signature[0]

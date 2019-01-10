@@ -1,28 +1,26 @@
 from trezor import log, ui, wire
-from trezor.crypto import bip32
 from trezor.messages.CardanoAddress import CardanoAddress
 
-from .address import derive_address_and_node
-from .ui import show_swipable_with_confirmation
+from apps.cardano import seed
+from apps.cardano.address import derive_address_and_node, validate_full_path
+from apps.cardano.layout import confirm_with_pagination
+from apps.common import paths
 
-from apps.common import storage
 
+async def get_address(ctx, msg):
+    keychain = await seed.get_keychain(ctx)
 
-async def cardano_get_address(ctx, msg):
-    mnemonic = storage.get_mnemonic()
-    root_node = bip32.from_mnemonic_cardano(mnemonic)
+    await paths.validate_path(ctx, validate_full_path, path=msg.address_n)
 
     try:
-        address, _ = derive_address_and_node(root_node, msg.address_n)
+        address, _ = derive_address_and_node(keychain, msg.address_n)
     except ValueError as e:
         if __debug__:
             log.exception(__name__, e)
         raise wire.ProcessError("Deriving address failed")
-    mnemonic = None
-    root_node = None
 
     if msg.show_display:
-        if not await show_swipable_with_confirmation(
+        if not await confirm_with_pagination(
             ctx, address, "Export address", icon=ui.ICON_SEND, icon_color=ui.GREEN
         ):
             raise wire.ActionCancelled("Exporting cancelled")

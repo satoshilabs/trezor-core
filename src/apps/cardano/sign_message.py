@@ -3,13 +3,15 @@ from trezor.crypto import bip32
 from trezor.crypto.curve import ed25519
 from trezor.messages.CardanoMessageSignature import CardanoMessageSignature
 
-from .address import _break_address_n_to_lines, derive_address_and_node
-from .ui import show_swipable_with_confirmation
+from .address import derive_address_and_node, validate_full_path
+from .layout import confirm_with_pagination
 
-from apps.common import seed, storage
+from apps.common import paths, seed, storage
 
 
-async def cardano_sign_message(ctx, msg):
+async def sign_message(ctx, msg):
+    await paths.validate_path(ctx, validate_full_path, path=msg.address_n)
+
     mnemonic = storage.get_mnemonic()
     root_node = bip32.from_mnemonic_cardano(mnemonic)
 
@@ -22,14 +24,14 @@ async def cardano_sign_message(ctx, msg):
     mnemonic = None
     root_node = None
 
-    if not await show_swipable_with_confirmation(
+    if not await confirm_with_pagination(
         ctx, msg.message, "Signing message", ui.ICON_RECEIVE, ui.GREEN
     ):
         raise wire.ActionCancelled("Signing cancelled")
 
-    if not await show_swipable_with_confirmation(
+    if not await confirm_with_pagination(
         ctx,
-        _break_address_n_to_lines(msg.address_n),
+        paths.break_address_n_to_lines(msg.address_n),
         "With address",
         ui.ICON_RECEIVE,
         ui.GREEN,

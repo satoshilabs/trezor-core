@@ -7,17 +7,19 @@ from trezor.messages.StellarSignTx import StellarSignTx
 from trezor.messages.StellarTxOpRequest import StellarTxOpRequest
 from trezor.wire import ProcessError
 
-from apps.common import seed
+from apps.common import paths, seed
 from apps.stellar import consts, helpers, layout, writers
-from apps.stellar.operations import operation
+from apps.stellar.operations import process_operation
 
 
-async def sign_tx(ctx, msg: StellarSignTx):
+async def sign_tx(ctx, msg: StellarSignTx, keychain):
+    await paths.validate_path(ctx, helpers.validate_full_path, path=msg.address_n)
+
+    node = keychain.derive(msg.address_n, consts.STELLAR_CURVE)
+    pubkey = seed.remove_ed25519_prefix(node.public_key())
+
     if msg.num_operations == 0:
         raise ProcessError("Stellar: At least one operation is required")
-
-    node = await seed.derive_node(ctx, msg.address_n, consts.STELLAR_CURVE)
-    pubkey = seed.remove_ed25519_prefix(node.public_key())
 
     w = bytearray()
     await _init(ctx, w, pubkey, msg)
@@ -72,7 +74,7 @@ async def _operations(ctx, w: bytearray, num_operations: int):
     writers.write_uint32(w, num_operations)
     for i in range(num_operations):
         op = await ctx.call(StellarTxOpRequest(), *consts.op_wire_types)
-        await operation(ctx, w, op)
+        await process_operation(ctx, w, op)
 
 
 async def _memo(ctx, w: bytearray, msg: StellarSignTx):

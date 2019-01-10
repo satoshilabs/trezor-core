@@ -25,6 +25,7 @@ CPPDEFINES_MOD += [
     'AES_192',
     ('USE_KECCAK', '1'),
     ('USE_ETHEREUM', '1'),
+    ('USE_MONERO', '1'),
     ('USE_CARDANO', '1'),
     ('USE_NEM', '1'),
 ]
@@ -60,6 +61,9 @@ SOURCE_MOD += [
     'vendor/trezor-crypto/ed25519-donna/ed25519-keccak.c',
     'vendor/trezor-crypto/ed25519-donna/ed25519-sha3.c',
     'vendor/trezor-crypto/ed25519-donna/modm-donna-32bit.c',
+    'vendor/trezor-crypto/monero/base58.c',
+    'vendor/trezor-crypto/monero/serialize.c',
+    'vendor/trezor-crypto/monero/xmr.c',
     'vendor/trezor-crypto/groestl.c',
     'vendor/trezor-crypto/hasher.c',
     'vendor/trezor-crypto/hmac.c',
@@ -98,10 +102,10 @@ SOURCE_MOD += [
     'embed/extmod/modtrezorui/modtrezorui.c',
     'embed/extmod/modtrezorui/trezor-qrenc/qr_encode.c',
 ]
-if ARGUMENTS.get('TREZOR_NOUI', 0):
-    CPPDEFINES_MOD += ['TREZOR_NOUI']
-else:
-    LIBS_MOD += ['SDL2', 'SDL2_image']
+if ARGUMENTS.get('TREZOR_EMULATOR_NOUI', 0):
+    CPPDEFINES_MOD += ['TREZOR_EMULATOR_NOUI']
+if ARGUMENTS.get('TREZOR_EMULATOR_RASPI', 0):
+    CPPDEFINES_MOD += ['TREZOR_EMULATOR_RASPI']
 
 # modtrezorutils
 SOURCE_MOD += [
@@ -136,6 +140,14 @@ SOURCE_MICROPYTHON = [
     'vendor/micropython/py/emitbc.c',
     'vendor/micropython/py/emitcommon.c',
     'vendor/micropython/py/emitglue.c',
+    'vendor/micropython/py/emitinlinethumb.c',
+    'vendor/micropython/py/emitinlinextensa.c',
+    'vendor/micropython/py/emitnarm.c',
+    'vendor/micropython/py/emitnative.c',
+    'vendor/micropython/py/emitnthumb.c',
+    'vendor/micropython/py/emitnx64.c',
+    'vendor/micropython/py/emitnx86.c',
+    'vendor/micropython/py/emitnxtensa.c',
     'vendor/micropython/py/formatfloat.c',
     'vendor/micropython/py/frozenmod.c',
     'vendor/micropython/py/gc.c',
@@ -144,18 +156,26 @@ SOURCE_MICROPYTHON = [
     'vendor/micropython/py/map.c',
     'vendor/micropython/py/modarray.c',
     'vendor/micropython/py/modbuiltins.c',
+    'vendor/micropython/py/modcmath.c',
+    'vendor/micropython/py/modcollections.c',
     'vendor/micropython/py/modgc.c',
+    'vendor/micropython/py/modio.c',
     'vendor/micropython/py/modmath.c',
     'vendor/micropython/py/modmicropython.c',
     'vendor/micropython/py/modstruct.c',
     'vendor/micropython/py/modsys.c',
+    'vendor/micropython/py/modthread.c',
+    'vendor/micropython/py/moduerrno.c',
     'vendor/micropython/py/mpprint.c',
     'vendor/micropython/py/mpstate.c',
     'vendor/micropython/py/mpz.c',
     'vendor/micropython/py/nativeglue.c',
     'vendor/micropython/py/nlr.c',
-    'vendor/micropython/py/nlrx86.c',
+    'vendor/micropython/py/nlrsetjmp.c',
+    'vendor/micropython/py/nlrthumb.c',
     'vendor/micropython/py/nlrx64.c',
+    'vendor/micropython/py/nlrx86.c',
+    'vendor/micropython/py/nlrxtensa.c',
     'vendor/micropython/py/obj.c',
     'vendor/micropython/py/objarray.c',
     'vendor/micropython/py/objattrtuple.c',
@@ -164,6 +184,7 @@ SOURCE_MICROPYTHON = [
     'vendor/micropython/py/objcell.c',
     'vendor/micropython/py/objclosure.c',
     'vendor/micropython/py/objcomplex.c',
+    'vendor/micropython/py/objdeque.c',
     'vendor/micropython/py/objdict.c',
     'vendor/micropython/py/objenumerate.c',
     'vendor/micropython/py/objexcept.c',
@@ -172,9 +193,9 @@ SOURCE_MICROPYTHON = [
     'vendor/micropython/py/objfun.c',
     'vendor/micropython/py/objgenerator.c',
     'vendor/micropython/py/objgetitemiter.c',
+    'vendor/micropython/py/objint.c',
     'vendor/micropython/py/objint_longlong.c',
     'vendor/micropython/py/objint_mpz.c',
-    'vendor/micropython/py/objint.c',
     'vendor/micropython/py/objlist.c',
     'vendor/micropython/py/objmap.c',
     'vendor/micropython/py/objmodule.c',
@@ -199,13 +220,14 @@ SOURCE_MICROPYTHON = [
     'vendor/micropython/py/parsenum.c',
     'vendor/micropython/py/parsenumbase.c',
     'vendor/micropython/py/persistentcode.c',
+    'vendor/micropython/py/pystack.c',
     'vendor/micropython/py/qstr.c',
     'vendor/micropython/py/reader.c',
     'vendor/micropython/py/repl.c',
-    'vendor/micropython/py/runtime_utils.c',
     'vendor/micropython/py/runtime.c',
-    'vendor/micropython/py/scope.c',
+    'vendor/micropython/py/runtime_utils.c',
     'vendor/micropython/py/scheduler.c',
+    'vendor/micropython/py/scope.c',
     'vendor/micropython/py/sequence.c',
     'vendor/micropython/py/showbc.c',
     'vendor/micropython/py/smallint.c',
@@ -223,6 +245,7 @@ SOURCE_UNIX = [
     'vendor/micropython/ports/unix/input.c',
     'vendor/micropython/ports/unix/alloc.c',
     'embed/unix/common.c',
+    'embed/unix/profile.c',
     'embed/unix/flash.c',
     'embed/unix/main.c',
     'embed/unix/rng.c',
@@ -239,17 +262,28 @@ env = Environment(ENV=os.environ, CFLAGS=ARGUMENTS.get('CFLAGS', ''))
 env.Tool('micropython')
 
 env.Replace(
+    CC=os.getenv('CC') or 'gcc',
     SED='sed',
     AS='as',
     AR='ar',
-    CC='gcc',
     LINK='ld',
     SIZE='size',
     STRIP='strip',
     OBJCOPY='objcopy', )
 
+if env.get('ENV').get('DEBUG_BUILD', 0):
+    import platform
+    platsys = platform.system()
+    env.Replace(
+        OPTIMIZE='-O0',
+        LINKFLAGS='-Wl,-no_pie' if platsys == "Darwin" else '-Wl,-no-pie'
+    )
+
 env.Replace(
-    COPT=env.get('ENV').get('OPTIMIZE', '-Os'),
+    TREZOR_MODEL=env.get('ENV').get('TREZOR_MODEL', 'T'), )
+
+env.Replace(
+    COPT=env.get('OPTIMIZE', env.get('ENV').get('OPTIMIZE', '-Os')),
     CCFLAGS='$COPT '
     '-g3 '
     '-std=gnu99 -Wall -Werror -Wuninitialized '
@@ -265,12 +299,15 @@ env.Replace(
         'vendor/micropython/lib/mp-readline',
     ] + CPPPATH_MOD,
     CPPDEFINES=[
-        'UNIX',
-        'TREZOR_MODEL_EMU',
+        'TREZOR_EMULATOR',
+        ('TREZOR_MODEL', '$TREZOR_MODEL'),
         'MICROPY_USE_READLINE',
         ('MP_CONFIGFILE', '\\"embed/unix/mpconfigport.h\\"'),
     ] + CPPDEFINES_MOD,
     ASPPFLAGS='$CFLAGS $CCFLAGS', )
+
+if not ARGUMENTS.get('TREZOR_EMULATOR_NOUI', 0):
+    env.ParseConfig('pkg-config --cflags --libs sdl2 SDL2_image || :')
 
 env.Replace(
     PYTHON='python',

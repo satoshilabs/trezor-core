@@ -1,17 +1,16 @@
 from micropython import const
 
 from trezor.crypto import base58, bech32, cashaddr
-from trezor.crypto.hashlib import ripemd160, sha256
+from trezor.crypto.hashlib import sha256
 from trezor.messages import FailureType, InputScriptType
 from trezor.utils import ensure
 
-from apps.common import address_type
+from apps.common import HARDENED, address_type, paths
 from apps.common.coininfo import CoinInfo
 from apps.wallet.sign_tx.multisig import multisig_get_pubkeys, multisig_pubkey_index
 from apps.wallet.sign_tx.scripts import (
     output_script_multisig,
     output_script_native_p2wpkh_or_p2wsh,
-    sha256_ripemd160_digest,
 )
 
 # supported witness version for bech32 addresses
@@ -65,7 +64,7 @@ def get_address(
             return address_multisig_p2wsh(pubkeys, multisig.m, coin.bech32_prefix)
 
         # native p2wpkh
-        return address_p2wpkh(node.public_key(), coin.bech32_prefix)
+        return address_p2wpkh(node.public_key(), coin)
 
     elif (
         script_type == InputScriptType.SPENDP2SHWITNESS
@@ -92,7 +91,7 @@ def address_multisig_p2sh(pubkeys: bytes, m: int, coin: CoinInfo):
             FailureType.ProcessError, "Multisig not enabled on this coin"
         )
     redeem_script = output_script_multisig(pubkeys, m)
-    redeem_script_hash = sha256_ripemd160_digest(redeem_script)
+    redeem_script_hash = coin.script_hash(redeem_script)
     return address_p2sh(redeem_script_hash, coin)
 
 
@@ -117,7 +116,7 @@ def address_multisig_p2wsh(pubkeys: bytes, m: int, hrp: str):
 
 
 def address_pkh(pubkey: bytes, coin: CoinInfo) -> str:
-    s = address_type.tobytes(coin.address_type) + sha256_ripemd160_digest(pubkey)
+    s = address_type.tobytes(coin.address_type) + coin.script_hash(pubkey)
     return base58.encode_check(bytes(s), coin.b58_hash)
 
 
@@ -127,21 +126,21 @@ def address_p2sh(redeem_script_hash: bytes, coin: CoinInfo) -> str:
 
 
 def address_p2wpkh_in_p2sh(pubkey: bytes, coin: CoinInfo) -> str:
-    pubkey_hash = ecdsa_hash_pubkey(pubkey)
+    pubkey_hash = ecdsa_hash_pubkey(pubkey, coin)
     redeem_script = output_script_native_p2wpkh_or_p2wsh(pubkey_hash)
-    redeem_script_hash = sha256_ripemd160_digest(redeem_script)
+    redeem_script_hash = coin.script_hash(redeem_script)
     return address_p2sh(redeem_script_hash, coin)
 
 
 def address_p2wsh_in_p2sh(witness_script_hash: bytes, coin: CoinInfo) -> str:
     redeem_script = output_script_native_p2wpkh_or_p2wsh(witness_script_hash)
-    redeem_script_hash = sha256_ripemd160_digest(redeem_script)
+    redeem_script_hash = coin.script_hash(redeem_script)
     return address_p2sh(redeem_script_hash, coin)
 
 
-def address_p2wpkh(pubkey: bytes, hrp: str) -> str:
-    pubkeyhash = ecdsa_hash_pubkey(pubkey)
-    address = bech32.encode(hrp, _BECH32_WITVER, pubkeyhash)
+def address_p2wpkh(pubkey: bytes, coin: CoinInfo) -> str:
+    pubkeyhash = ecdsa_hash_pubkey(pubkey, coin)
+    address = bech32.encode(coin.bech32_prefix, _BECH32_WITVER, pubkeyhash)
     if address is None:
         raise AddressError(FailureType.ProcessError, "Invalid address")
     return address
@@ -173,16 +172,15 @@ def address_to_cashaddr(address: str, coin: CoinInfo) -> str:
     return cashaddr.encode(coin.cashaddr_prefix, version, data)
 
 
-def ecdsa_hash_pubkey(pubkey: bytes) -> bytes:
+def ecdsa_hash_pubkey(pubkey: bytes, coin: CoinInfo) -> bytes:
     if pubkey[0] == 0x04:
         ensure(len(pubkey) == 65)  # uncompressed format
     elif pubkey[0] == 0x00:
         ensure(len(pubkey) == 1)  # point at infinity
     else:
         ensure(len(pubkey) == 33)  # compresssed format
-    h = sha256(pubkey).digest()
-    h = ripemd160(h).digest()
-    return h
+
+    return coin.script_hash(pubkey)
 
 
 def address_short(coin: CoinInfo, address: str) -> str:
@@ -192,3 +190,92 @@ def address_short(coin: CoinInfo, address: str) -> str:
         return address[len(coin.cashaddr_prefix) + 1 :]
     else:
         return address
+
+
+def validate_full_path(
+    path: list, coin: CoinInfo, script_type: InputScriptType, validate_script_type=True
+) -> bool:
+    """
+    Validates derivation path to fit Bitcoin-like coins. We mostly use
+    44', but for segwit-enabled coins we use either 49' (P2WPKH-nested-in-P2SH)
+    or 84' (native P2WPKH). Electrum uses m/45' for legacy addresses and
+    m/48' for segwit, so those two are allowed as well.
+
+    See docs/coins for what paths are allowed. Please note that this is not
+    a comprehensive check, some nuances are omitted for simplification.
+    """
+    if len(path) != 5:
+        return False
+
+    if not validate_purpose(path[0], coin):
+        return False
+    if validate_script_type and not validate_purpose_against_script_type(
+        path[0], script_type
+    ):
+        return False
+
+    if path[1] != coin.slip44 | HARDENED:
+        return False
+    if path[2] < HARDENED or path[2] > 20 | HARDENED:
+        return False
+    if path[3] not in [0, 1]:
+        return False
+    if path[4] > 1000000:
+        return False
+    return True
+
+
+def validate_purpose(purpose: int, coin: CoinInfo) -> bool:
+    if purpose not in (44 | HARDENED, 48 | HARDENED, 49 | HARDENED, 84 | HARDENED):
+        return False
+    if not coin.segwit and purpose not in (44 | HARDENED, 48 | HARDENED):
+        return False
+    return True
+
+
+def validate_purpose_against_script_type(
+    purpose: int, script_type: InputScriptType
+) -> bool:
+    """
+    Validates purpose against provided input's script type:
+    - 44 for spending address (script_type == SPENDADDRESS)
+    - 48 for multisig (script_type == SPENDMULTISIG)
+    - 49 for p2sh-segwit spend (script_type == SPENDP2SHWITNESS)
+    - 84 for native segwit spend (script_type == SPENDWITNESS)
+    """
+    if purpose == 44 | HARDENED and script_type != InputScriptType.SPENDADDRESS:
+        return False
+    if purpose == 48 | HARDENED and script_type != InputScriptType.SPENDMULTISIG:
+        return False
+    if (  # p2wsh-nested-in-p2sh
+        purpose == 49 | HARDENED and script_type != InputScriptType.SPENDP2SHWITNESS
+    ):
+        return False
+    if (  # p2wsh
+        purpose == 84 | HARDENED and script_type != InputScriptType.SPENDWITNESS
+    ):
+        return False
+    return True
+
+
+def validate_path_for_bitcoin_public_key(path: list, coin: CoinInfo) -> bool:
+    """
+    Validates derivation path to fit Bitcoin-like coins for GetPublicKey.
+    Script type is omitted here because it is not usually sent.
+    """
+    length = len(path)
+    if length < 3 or length > 5:
+        return False
+
+    if not validate_purpose(path[0], coin):
+        return False
+
+    if path[1] != coin.slip44 | HARDENED:
+        return False
+    if path[2] < HARDENED or path[2] > 20 | HARDENED:
+        return False
+    if length > 3 and paths.is_hardened(path[3]):
+        return False
+    if length > 4 and paths.is_hardened(path[4]):
+        return False
+    return True

@@ -3,7 +3,7 @@ from trezor.crypto.hashlib import sha256
 from trezor.messages import FailureType
 from trezor.messages.HDNodePathType import HDNodePathType
 from trezor.messages.MultisigRedeemScriptType import MultisigRedeemScriptType
-from trezor.utils import HashWriter
+from trezor.utils import HashWriter, ensure
 
 from apps.wallet.sign_tx.writers import write_bytes, write_uint32
 
@@ -19,7 +19,7 @@ class MultisigFingerprint:
 
     def add(self, multisig: MultisigRedeemScriptType):
         fp = multisig_fingerprint(multisig)
-        assert fp is not None
+        ensure(fp is not None)
         if self.fingerprint is None:
             self.fingerprint = fp
         elif self.fingerprint != fp:
@@ -27,7 +27,7 @@ class MultisigFingerprint:
 
     def matches(self, multisig: MultisigRedeemScriptType):
         fp = multisig_fingerprint(multisig)
-        assert fp is not None
+        ensure(fp is not None)
         if self.mismatch is False and self.fingerprint == fp:
             return True
         else:
@@ -50,7 +50,7 @@ def multisig_fingerprint(multisig: MultisigRedeemScriptType) -> bytes:
     # casting to bytes(), sorting on bytearray() is not supported in MicroPython
     pubkeys = sorted(pubkeys, key=lambda hd: bytes(hd.node.public_key))
 
-    h = HashWriter(sha256)
+    h = HashWriter(sha256())
     write_uint32(h, m)
     write_uint32(h, n)
     for hd in pubkeys:

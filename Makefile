@@ -33,7 +33,7 @@ FIRMWARE_P1_MAXSIZE = 786432
 FIRMWARE_P2_MAXSIZE = 917504
 FIRMWARE_MAXSIZE    = 1703936
 
-GITREV=$(shell git describe --always --dirty)
+GITREV=$(shell git describe --always --dirty | tr '-' '_')
 CFLAGS += -DGITREV=$(GITREV)
 
 ## help commands:
@@ -65,6 +65,9 @@ test: ## run unit tests
 test_emu: ## run selected device tests from python-trezor
 	cd tests ; ./run_tests_device_emu.sh $(TESTOPTS)
 
+test_emu_monero: ## run selected monero device tests from monero-agent
+	cd tests ; ./run_tests_device_emu_monero.sh $(TESTOPTS)
+
 pylint: ## run pylint on application sources and tests
 	pylint -E $(shell find src tests -name *.py)
 
@@ -83,6 +86,14 @@ black:
 
 cstyle: ## run code style check on low-level C code
 	./tools/clang-format-check $(shell find embed -type f -name *.[ch])
+
+## code generation ##
+
+templates: ## render Mako templates (for lists of coins, tokens, etc.)
+	./tools/build_templates
+
+templates_check: ## check that Mako-rendered files match their templates
+	./tools/build_templates --check
 
 ## build commands:
 
@@ -111,7 +122,10 @@ build_unix: res ## build unix port
 	$(SCONS) CFLAGS="$(CFLAGS)" $(UNIX_BUILD_DIR)/micropython $(UNIX_PORT_OPTS)
 
 build_unix_noui: res ## build unix port without UI support
-	$(SCONS) CFLAGS="$(CFLAGS)" $(UNIX_BUILD_DIR)/micropython $(UNIX_PORT_OPTS) TREZOR_NOUI=1
+	$(SCONS) CFLAGS="$(CFLAGS)" $(UNIX_BUILD_DIR)/micropython $(UNIX_PORT_OPTS) TREZOR_EMULATOR_NOUI=1
+
+build_unix_raspi: res ## build unix port for Raspberry Pi
+	$(SCONS) CFLAGS="$(CFLAGS)" $(UNIX_BUILD_DIR)/micropython $(UNIX_PORT_OPTS) TREZOR_EMULATOR_RASPI=1
 
 build_cross: ## build mpy-cross port
 	$(MAKE) -C vendor/micropython/mpy-cross $(CROSS_PORT_OPTS)
@@ -207,7 +221,7 @@ combine: ## combine boardloader + bootloader + prodtest into one combined image
 		$(BOARDLOADER_START) $(BOARDLOADER_BUILD_DIR)/boardloader.bin \
 		$(BOOTLOADER_START) $(BOOTLOADER_BUILD_DIR)/bootloader.bin \
 		$(PRODTEST_START) $(PRODTEST_BUILD_DIR)/prodtest.bin \
-		> $(PRODTEST_BUILD_DIR)/combined.bin \
+		> $(PRODTEST_BUILD_DIR)/combined.bin
 
 upload: ## upload firmware using trezorctl
 	trezorctl firmware_update -f $(FIRMWARE_BUILD_DIR)/firmware.bin

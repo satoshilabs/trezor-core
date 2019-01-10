@@ -5,15 +5,17 @@ from trezor.messages.RippleSignedTx import RippleSignedTx
 from trezor.messages.RippleSignTx import RippleSignTx
 from trezor.wire import ProcessError
 
-from . import helpers, layout
-from .serialize import serialize
+from apps.common import paths
+from apps.ripple import helpers, layout
+from apps.ripple.serialize import serialize
 
-from apps.common import seed
 
-
-async def sign_tx(ctx, msg: RippleSignTx):
+async def sign_tx(ctx, msg: RippleSignTx, keychain):
     validate(msg)
-    node = await seed.derive_node(ctx, msg.address_n)
+
+    await paths.validate_path(ctx, helpers.validate_full_path, path=msg.address_n)
+
+    node = keychain.derive(msg.address_n)
     source_address = helpers.address_from_public_key(node.public_key())
 
     set_canonical_flag(msg)
@@ -21,6 +23,8 @@ async def sign_tx(ctx, msg: RippleSignTx):
     to_sign = get_network_prefix() + tx
 
     check_fee(msg.fee)
+    if msg.payment.destination_tag is not None:
+        await layout.require_confirm_destination_tag(ctx, msg.payment.destination_tag)
     await layout.require_confirm_fee(ctx, msg.fee)
     await layout.require_confirm_tx(ctx, msg.payment.destination, msg.payment.amount)
 
@@ -65,12 +69,8 @@ def set_canonical_flag(msg: RippleSignTx):
 
 
 def validate(msg: RippleSignTx):
-    if None in (
-        msg.fee,
-        msg.sequence,
-        msg.payment,
-        msg.payment.amount,
-        msg.payment.destination,
+    if None in (msg.fee, msg.sequence, msg.payment) or (
+        msg.payment and None in (msg.payment.amount, msg.payment.destination)
     ):
         raise ProcessError(
             "Some of the required fields are missing (fee, sequence, payment.amount, payment.destination)"

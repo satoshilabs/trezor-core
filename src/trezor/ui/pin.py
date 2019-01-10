@@ -34,7 +34,19 @@ class PinMatrix(ui.Widget):
         ]
         self.onchange = None
 
+    def taint(self):
+        super().taint()
+        for btn in self.pin_buttons:
+            btn.taint()
+
     def render(self):
+        # pin matrix buttons
+        for btn in self.pin_buttons:
+            btn.render()
+
+        if not self.tainted:
+            return
+
         # clear canvas under input line
         display.bar(0, 0, ui.WIDTH, 45, ui.BG)
 
@@ -52,9 +64,7 @@ class PinMatrix(ui.Widget):
             # input line with header label
             display.text_center(ui.WIDTH // 2, 36, self.label, ui.BOLD, ui.GREY, ui.BG)
 
-        # pin matrix buttons
-        for btn in self.pin_buttons:
-            btn.render()
+        self.tainted = False
 
     def touch(self, event, pos):
         for btn in self.pin_buttons:
@@ -64,6 +74,7 @@ class PinMatrix(ui.Widget):
                 break
 
     def change(self, pin):
+        self.tainted = True
         self.pin = pin
         for btn in self.pin_buttons:
             if len(self.pin) == self.maxlength:

@@ -71,6 +71,18 @@ def groestl512d_32(data: bytes) -> bytes:
     return groestl512(groestl512(data).digest()).digest()[:4]
 
 
+def blake256d_32(data: bytes) -> bytes:
+    from .hashlib import blake256
+
+    return blake256(blake256(data).digest()).digest()[:4]
+
+
+def keccak_32(data: bytes) -> bytes:
+    from .hashlib import sha3_256
+
+    return sha3_256(data, keccak=True).digest()[:4]
+
+
 def encode_check(data: bytes, digestfunc=sha256d_32) -> str:
     """
     Convert bytes to base58 encoded string, append checksum.

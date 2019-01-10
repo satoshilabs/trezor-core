@@ -4,11 +4,13 @@ from trezor import ui
 
 TEXT_HEADER_HEIGHT = const(48)
 TEXT_LINE_HEIGHT = const(26)
+TEXT_LINE_HEIGHT_HALF = const(13)
 TEXT_MARGIN_LEFT = const(14)
 TEXT_MAX_LINES = const(5)
 
 # needs to be different from all colors and font ids
 BR = const(-256)
+BR_HALF = const(-257)
 
 
 def render_text(words: list, new_lines: bool, max_lines: int) -> None:
@@ -20,6 +22,7 @@ def render_text(words: list, new_lines: bool, max_lines: int) -> None:
     offset_y = TEXT_HEADER_HEIGHT + TEXT_LINE_HEIGHT
     OFFSET_X_MAX = ui.WIDTH
     OFFSET_Y_MAX = TEXT_HEADER_HEIGHT + TEXT_LINE_HEIGHT * max_lines
+    FONTS = (ui.NORMAL, ui.BOLD, ui.MONO, ui.MONO_BOLD)
 
     # sizes of common glyphs
     SPACE = ui.display.text_width(" ", font)
@@ -30,14 +33,14 @@ def render_text(words: list, new_lines: bool, max_lines: int) -> None:
         has_next_word = word_index < len(words) - 1
 
         if isinstance(word, int):
-            if word == BR:
-                # line break
+            if word in [BR, BR_HALF]:
+                # line break or half-line break
                 if offset_y >= OFFSET_Y_MAX:
                     ui.display.text(offset_x, offset_y, "...", ui.BOLD, ui.GREY, bg)
                     return
                 offset_x = TEXT_MARGIN_LEFT
-                offset_y += TEXT_LINE_HEIGHT
-            elif word in [ui.NORMAL, ui.BOLD, ui.MONO, ui.MONO_BOLD]:
+                offset_y += TEXT_LINE_HEIGHT if word == BR else TEXT_LINE_HEIGHT_HALF
+            elif word in FONTS:
                 # change of font style
                 font = word
             else:
@@ -105,7 +108,7 @@ def render_text(words: list, new_lines: bool, max_lines: int) -> None:
             offset_x += SPACE
 
 
-class Text(ui.LazyWidget):
+class Text(ui.Widget):
     def __init__(
         self,
         header_text: str,
@@ -122,25 +125,35 @@ class Text(ui.LazyWidget):
         self.content = []
 
     def normal(self, *content):
+        self.content.append(ui.NORMAL)
         self.content.extend(content)
 
     def bold(self, *content):
         self.content.append(ui.BOLD)
         self.content.extend(content)
-        self.content.append(ui.NORMAL)
 
     def mono(self, *content):
         self.content.append(ui.MONO)
         self.content.extend(content)
-        self.content.append(ui.NORMAL)
 
     def mono_bold(self, *content):
         self.content.append(ui.MONO_BOLD)
         self.content.extend(content)
-        self.content.append(ui.NORMAL)
+
+    def br(self):
+        self.content.append(BR)
+
+    def br_half(self):
+        self.content.append(BR_HALF)
 
     def render(self):
-        ui.header(
-            self.header_text, self.header_icon, ui.TITLE_GREY, ui.BG, self.icon_color
-        )
-        render_text(self.content, self.new_lines, self.max_lines)
+        if self.tainted:
+            ui.header(
+                self.header_text,
+                self.header_icon,
+                ui.TITLE_GREY,
+                ui.BG,
+                self.icon_color,
+            )
+            render_text(self.content, self.new_lines, self.max_lines)
+            self.tainted = False

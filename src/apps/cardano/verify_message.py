@@ -5,10 +5,15 @@ from trezor.crypto.curve import ed25519
 from trezor.messages.Failure import Failure
 from trezor.messages.Success import Success
 
-from .ui import show_swipable_with_confirmation
+from .address import validate_full_path
+from .layout import confirm_with_pagination
+
+from apps.common import paths
 
 
-async def cardano_verify_message(ctx, msg):
+async def verify_message(ctx, msg):
+    await paths.validate_path(ctx, validate_full_path, path=msg.address_n)
+
     try:
         res = _verify_message(msg.public_key, msg.signature, msg.message)
     except ValueError as e:
@@ -19,12 +24,12 @@ async def cardano_verify_message(ctx, msg):
     if not res:
         return Failure(message="Invalid signature")
 
-    if not await show_swipable_with_confirmation(
+    if not await confirm_with_pagination(
         ctx, msg.message, "Verifying message", ui.ICON_RECEIVE, ui.GREEN
     ):
         raise wire.ActionCancelled("Verifying cancelled")
 
-    if not await show_swipable_with_confirmation(
+    if not await confirm_with_pagination(
         ctx, hexlify(msg.public_key), "With public key", ui.ICON_RECEIVE, ui.GREEN
     ):
         raise wire.ActionCancelled("Verifying cancelled")

@@ -6,7 +6,7 @@ from trezor.ui.text import Text
 
 from apps.common import coins
 from apps.common.confirm import require_confirm
-from apps.common.display_address import split_address
+from apps.common.layout import split_address
 from apps.common.signverify import message_digest, split_message
 from apps.wallet.sign_tx.addresses import (
     address_p2wpkh,
@@ -51,7 +51,7 @@ async def verify_message(ctx, msg):
     elif script_type == SPENDP2SHWITNESS:
         addr = address_p2wpkh_in_p2sh(pubkey, coin)
     elif script_type == SPENDWITNESS:
-        addr = address_p2wpkh(pubkey, coin.bech32_prefix)
+        addr = address_p2wpkh(pubkey, coin)
     else:
         raise wire.ProcessError("Invalid signature")
 
@@ -68,6 +68,6 @@ async def require_confirm_verify_message(ctx, address, message):
     text.mono(*split_address(address))
     await require_confirm(ctx, text)
 
-    text = Text("Verify message")
+    text = Text("Verify message", new_lines=False)
     text.normal(*split_message(message))
     await require_confirm(ctx, text)

@@ -7,14 +7,19 @@ from trezor.messages import LiskTransactionType
 from trezor.messages.LiskSignedTx import LiskSignedTx
 from trezor.utils import HashWriter
 
-from . import layout
-from .helpers import LISK_CURVE, get_address_from_public_key
+from apps.common import paths
+from apps.lisk import layout
+from apps.lisk.helpers import (
+    LISK_CURVE,
+    get_address_from_public_key,
+    validate_full_path,
+)
 
-from apps.common import seed
 
+async def sign_tx(ctx, msg, keychain):
+    await paths.validate_path(ctx, validate_full_path, path=msg.address_n)
 
-async def lisk_sign_tx(ctx, msg):
-    pubkey, seckey = await _get_keys(ctx, msg)
+    pubkey, seckey = _get_keys(keychain, msg)
     transaction = _update_raw_tx(msg.transaction, pubkey)
 
     try:
@@ -25,7 +30,7 @@ async def lisk_sign_tx(ctx, msg):
     await layout.require_confirm_fee(ctx, transaction.amount, transaction.fee)
 
     txbytes = _get_transaction_bytes(transaction)
-    txhash = HashWriter(sha256)
+    txhash = HashWriter(sha256())
     for field in txbytes:
         txhash.extend(field)
     digest = txhash.get_digest()
@@ -35,9 +40,8 @@ async def lisk_sign_tx(ctx, msg):
     return LiskSignedTx(signature=signature)
 
 
-async def _get_keys(ctx, msg):
-    address_n = msg.address_n or ()
-    node = await seed.derive_node(ctx, address_n, LISK_CURVE)
+def _get_keys(keychain, msg):
+    node = keychain.derive(msg.address_n, LISK_CURVE)
 
     seckey = node.private_key()
     pubkey = node.public_key()
@@ -54,7 +58,8 @@ def _update_raw_tx(transaction, pubkey):
     # For CastVotes transactions, recipientId should be equal to transaction
     # creator address.
     if transaction.type == LiskTransactionType.CastVotes:
-        transaction.recipient_id = get_address_from_public_key(pubkey)
+        if not transaction.recipient_id:
+            transaction.recipient_id = get_address_from_public_key(pubkey)
 
     return transaction
 

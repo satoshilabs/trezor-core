@@ -66,6 +66,11 @@ class HoldToConfirmDialog(Widget):
         self.button = Button(ui.grid(4, n_x=1), hold, style=button_style)
         self.loader = Loader(style=loader_style)
 
+    def taint(self):
+        super().taint()
+        self.button.taint()
+        self.content.taint()
+
     def render(self):
         self.button.render()
 
@@ -79,8 +84,7 @@ class HoldToConfirmDialog(Widget):
             self.loader.start()
             return _STARTED
         if was_active and not is_active:
-            if isinstance(self.content, ui.LazyWidget):
-                self.content.taint()
+            self.content.taint()
             if self.loader.stop():
                 return CONFIRMED
             else:

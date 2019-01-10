@@ -2,19 +2,15 @@
 # fmt: off
 import protobuf as p
 
+from .MoneroTransactionSourceEntry import MoneroTransactionSourceEntry
+
 
 class MoneroTransactionInputViniRequest(p.MessageType):
-    FIELDS = {
-        1: ('src_entr', p.BytesType, 0),
-        2: ('vini', p.BytesType, 0),
-        3: ('vini_hmac', p.BytesType, 0),
-        4: ('pseudo_out', p.BytesType, 0),
-        5: ('pseudo_out_hmac', p.BytesType, 0),
-    }
+    MESSAGE_WIRE_TYPE = 507
 
     def __init__(
         self,
-        src_entr: bytes = None,
+        src_entr: MoneroTransactionSourceEntry = None,
         vini: bytes = None,
         vini_hmac: bytes = None,
         pseudo_out: bytes = None,
@@ -25,3 +21,13 @@ class MoneroTransactionInputViniRequest(p.MessageType):
         self.vini_hmac = vini_hmac
         self.pseudo_out = pseudo_out
         self.pseudo_out_hmac = pseudo_out_hmac
+
+    @classmethod
+    def get_fields(cls):
+        return {
+            1: ('src_entr', MoneroTransactionSourceEntry, 0),
+            2: ('vini', p.BytesType, 0),
+            3: ('vini_hmac', p.BytesType, 0),
+            4: ('pseudo_out', p.BytesType, 0),
+            5: ('pseudo_out_hmac', p.BytesType, 0),
+        }

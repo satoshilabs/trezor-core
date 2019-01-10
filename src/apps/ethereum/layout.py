@@ -6,19 +6,22 @@ from trezor.ui.text import Text
 from trezor.utils import chunks, format_amount
 
 from apps.common.confirm import require_confirm, require_hold_to_confirm
+from apps.common.layout import split_address
 from apps.ethereum import networks, tokens
-from apps.ethereum.get_address import _ethereum_address_hex
+from apps.ethereum.address import ethereum_address_hex
 
 
 async def require_confirm_tx(ctx, to, value, chain_id, token=None, tx_type=None):
     if to:
-        to_str = _ethereum_address_hex(to, networks.by_chain_id(chain_id))
+        to_str = ethereum_address_hex(to, networks.by_chain_id(chain_id))
     else:
         to_str = "new contract?"
-    text = Text("Confirm sending", ui.ICON_SEND, icon_color=ui.GREEN)
+    text = Text("Confirm sending", ui.ICON_SEND, icon_color=ui.GREEN, new_lines=False)
     text.bold(format_ethereum_amount(value, token, chain_id, tx_type))
-    text.normal("to")
-    text.mono(*split_address(to_str))
+    text.normal(ui.GREY, "to", ui.FG)
+    for to_line in split_address(to_str):
+        text.br()
+        text.mono(to_line)
     # we use SignTx, not ConfirmOutput, for compatibility with T1
     await require_confirm(ctx, text, ButtonRequestType.SignTx)
 
@@ -26,11 +29,13 @@ async def require_confirm_tx(ctx, to, value, chain_id, token=None, tx_type=None)
 async def require_confirm_fee(
     ctx, spending, gas_price, gas_limit, chain_id, token=None, tx_type=None
 ):
-    text = Text("Confirm transaction", ui.ICON_SEND, icon_color=ui.GREEN)
+    text = Text(
+        "Confirm transaction", ui.ICON_SEND, icon_color=ui.GREEN, new_lines=False
+    )
     text.bold(format_ethereum_amount(spending, token, chain_id, tx_type))
-    text.normal("Gas price:")
+    text.normal(ui.GREY, "Gas price:", ui.FG)
     text.bold(format_ethereum_amount(gas_price, None, chain_id, tx_type))
-    text.normal("Maximum fee:")
+    text.normal(ui.GREY, "Maximum fee:", ui.FG)
     text.bold(format_ethereum_amount(gas_price * gas_limit, None, chain_id, tx_type))
     await require_hold_to_confirm(ctx, text, ButtonRequestType.SignTx)
 
@@ -48,10 +53,6 @@ async def require_confirm_data(ctx, data, data_total):
     text.mono(*split_data(data_str))
     # we use SignTx, not ConfirmOutput, for compatibility with T1
     await require_confirm(ctx, text, ButtonRequestType.SignTx)
-
-
-def split_address(address):
-    return chunks(address, 17)
 
 
 def format_ethereum_amount(value: int, token, chain_id: int, tx_type=None):

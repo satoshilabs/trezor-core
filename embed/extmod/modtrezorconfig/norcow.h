@@ -24,11 +24,10 @@
 #include "secbool.h"
 
 /*
- * Storage parameters:
+ * Storage parameters
  */
 
-#define NORCOW_SECTOR_COUNT  2
-#define NORCOW_SECTOR_SIZE   (64*1024)
+#include "norcow_config.h"
 
 /*
  * Initialize storage

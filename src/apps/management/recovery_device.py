@@ -1,7 +1,11 @@
 from trezor import config, ui, wire
 from trezor.crypto import bip39
 from trezor.messages.ButtonRequest import ButtonRequest
-from trezor.messages.ButtonRequestType import MnemonicInput, MnemonicWordCount
+from trezor.messages.ButtonRequestType import (
+    MnemonicInput,
+    MnemonicWordCount,
+    ProtectCall,
+)
 from trezor.messages.MessageType import ButtonAck
 from trezor.messages.Success import Success
 from trezor.pin import pin_to_int
@@ -11,6 +15,7 @@ from trezor.ui.word_select import WordSelector
 from trezor.utils import format_ordinal
 
 from apps.common import storage
+from apps.common.confirm import require_confirm
 from apps.management.change_pin import request_pin_confirm
 
 
@@ -26,6 +31,11 @@ async def recovery_device(ctx, msg):
     """
     if not msg.dry_run and storage.is_initialized():
         raise wire.UnexpectedMessage("Already initialized")
+
+    text = Text("Device recovery", ui.ICON_RECOVERY)
+    text.normal("Do you really want to", "recover the device?", "")
+
+    await require_confirm(ctx, text, code=ProtectCall)
 
     # ask for the number of words
     wordcount = await request_wordcount(ctx)
@@ -45,9 +55,9 @@ async def recovery_device(ctx, msg):
     # save into storage
     if not msg.dry_run:
         if msg.pin_protection:
-            config.change_pin(pin_to_int(""), pin_to_int(newpin), None)
+            config.change_pin(pin_to_int(""), pin_to_int(newpin))
         storage.load_settings(label=msg.label, use_passphrase=msg.passphrase_protection)
-        storage.load_mnemonic(mnemonic=mnemonic, needs_backup=False)
+        storage.load_mnemonic(mnemonic=mnemonic, needs_backup=False, no_backup=False)
         return Success(message="Device recovered")
     else:
         if storage.get_mnemonic() == mnemonic:

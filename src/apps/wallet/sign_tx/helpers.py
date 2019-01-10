@@ -12,6 +12,7 @@ from trezor.messages.TxInputType import TxInputType
 from trezor.messages.TxOutputBinType import TxOutputBinType
 from trezor.messages.TxOutputType import TxOutputType
 from trezor.messages.TxRequest import TxRequest
+from trezor.utils import obj_eq
 
 from apps.common.coininfo import CoinInfo
 
@@ -24,6 +25,8 @@ class UiConfirmOutput:
         self.output = output
         self.coin = coin
 
+    __eq__ = obj_eq
+
 
 class UiConfirmTotal:
     def __init__(self, spending: int, fee: int, coin: CoinInfo):
@@ -31,17 +34,22 @@ class UiConfirmTotal:
         self.fee = fee
         self.coin = coin
 
+    __eq__ = obj_eq
+
 
 class UiConfirmFeeOverThreshold:
     def __init__(self, fee: int, coin: CoinInfo):
         self.fee = fee
         self.coin = coin
 
+    __eq__ = obj_eq
+
 
 class UiConfirmForeignAddress:
-    def __init__(self, address_n: list, coin: CoinInfo):
+    def __init__(self, address_n: list):
         self.address_n = address_n
-        self.coin = coin
+
+    __eq__ = obj_eq
 
 
 def confirm_output(output: TxOutputType, coin: CoinInfo):
@@ -56,8 +64,8 @@ def confirm_feeoverthreshold(fee: int, coin: CoinInfo):
     return (yield UiConfirmFeeOverThreshold(fee, coin))
 
 
-def confirm_foreign_address(address_n: list, coin: CoinInfo):
-    return (yield UiConfirmForeignAddress(address_n, coin))
+def confirm_foreign_address(address_n: list):
+    return (yield UiConfirmForeignAddress(address_n))
 
 
 def request_tx_meta(tx_req: TxRequest, tx_hash: bytes = None):
@@ -79,6 +87,8 @@ def request_tx_extra_data(
     tx_req.details.request_index = None
     ack = yield tx_req
     tx_req.serialized = None
+    tx_req.details.extra_data_offset = None
+    tx_req.details.extra_data_len = None
     return ack.tx.extra_data
 
 
@@ -122,6 +132,7 @@ def sanitize_sign_tx(tx: SignTx) -> SignTx:
     tx.coin_name = tx.coin_name if tx.coin_name is not None else "Bitcoin"
     tx.expiry = tx.expiry if tx.expiry is not None else 0
     tx.overwintered = tx.overwintered if tx.overwintered is not None else False
+    tx.timestamp = tx.timestamp if tx.timestamp is not None else 0
     return tx
 
 
@@ -133,6 +144,7 @@ def sanitize_tx_meta(tx: TransactionType) -> TransactionType:
     tx.extra_data_len = tx.extra_data_len if tx.extra_data_len is not None else 0
     tx.expiry = tx.expiry if tx.expiry is not None else 0
     tx.overwintered = tx.overwintered if tx.overwintered is not None else False
+    tx.timestamp = tx.timestamp if tx.timestamp is not None else 0
     return tx
 
 
@@ -141,7 +153,7 @@ def sanitize_tx_input(tx: TransactionType) -> TxInputType:
     if txi.script_type is None:
         txi.script_type = InputScriptType.SPENDADDRESS
     if txi.sequence is None:
-        txi.sequence = 0xffffffff
+        txi.sequence = 0xFFFFFFFF
     return txi
 
 

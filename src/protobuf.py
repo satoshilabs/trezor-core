@@ -51,6 +51,30 @@ async def dump_uvarint(writer, n):
         n = shifted
 
 
+def count_uvarint(n):
+    if n < 0:
+        raise ValueError("Cannot dump signed value, convert it to unsigned first.")
+    if n <= 0x7F:
+        return 1
+    if n <= 0x3FFF:
+        return 2
+    if n <= 0x1FFFFF:
+        return 3
+    if n <= 0xFFFFFFF:
+        return 4
+    if n <= 0x7FFFFFFFF:
+        return 5
+    if n <= 0x3FFFFFFFFFF:
+        return 6
+    if n <= 0x1FFFFFFFFFFFF:
+        return 7
+    if n <= 0xFFFFFFFFFFFFFF:
+        return 8
+    if n <= 0x7FFFFFFFFFFFFFFF:
+        return 9
+    raise ValueError
+
+
 # protobuf interleaved signed encoding:
 # https://developers.google.com/protocol-buffers/docs/encoding#structure
 # the idea is to save the sign in LSbit instead of twos-complement.
@@ -108,7 +132,10 @@ class UnicodeType:
 
 class MessageType:
     WIRE_TYPE = 2
-    FIELDS = {}
+
+    @classmethod
+    def get_fields(cls):
+        return {}
 
     def __init__(self, **kwargs):
         for kw in kwargs:
@@ -149,7 +176,7 @@ FLAG_REPEATED = const(1)
 
 
 async def load_message(reader, msg_type):
-    fields = msg_type.FIELDS
+    fields = msg_type.get_fields()
     msg = msg_type()
 
     while True:
@@ -204,18 +231,19 @@ async def load_message(reader, msg_type):
         setattr(msg, fname, fvalue)
 
     # fill missing fields
-    for tag in msg.FIELDS:
-        field = msg.FIELDS[tag]
+    for tag in fields:
+        field = fields[tag]
         if not hasattr(msg, field[0]):
             setattr(msg, field[0], None)
 
     return msg
 
 
-async def dump_message(writer, msg):
+async def dump_message(writer, msg, fields=None):
     repvalue = [0]
-    mtype = msg.__class__
-    fields = mtype.FIELDS
+
+    if fields is None:
+        fields = msg.get_fields()
 
     for ftag in fields:
         fname, ftype, fflags = fields[ftag]
@@ -230,6 +258,11 @@ async def dump_message(writer, msg):
             repvalue[0] = fvalue
             fvalue = repvalue
 
+        if issubclass(ftype, MessageType):
+            ffields = ftype.get_fields()
+        else:
+            ffields = None
+
         for svalue in fvalue:
             await dump_uvarint(writer, fkey)
 
@@ -243,19 +276,93 @@ async def dump_message(writer, msg):
                 await dump_uvarint(writer, int(svalue))
 
             elif ftype is BytesType:
+                if isinstance(svalue, list):
+                    await dump_uvarint(writer, _count_bytes_list(svalue))
+                    for sub_svalue in svalue:
+                        await writer.awrite(sub_svalue)
+                else:
+                    await dump_uvarint(writer, len(svalue))
+                    await writer.awrite(svalue)
+
+            elif ftype is UnicodeType:
+                svalue = svalue.encode()
                 await dump_uvarint(writer, len(svalue))
                 await writer.awrite(svalue)
 
-            elif ftype is UnicodeType:
-                bvalue = svalue.encode()
-                await dump_uvarint(writer, len(bvalue))
-                await writer.awrite(bvalue)
-
             elif issubclass(ftype, MessageType):
-                counter = CountingWriter()
-                await dump_message(counter, svalue)
-                await dump_uvarint(writer, counter.size)
-                await dump_message(writer, svalue)
+                await dump_uvarint(writer, count_message(svalue, ffields))
+                await dump_message(writer, svalue, ffields)
 
             else:
                 raise TypeError
+
+
+def count_message(msg, fields=None):
+    nbytes = 0
+    repvalue = [0]
+
+    if fields is None:
+        fields = msg.get_fields()
+
+    for ftag in fields:
+        fname, ftype, fflags = fields[ftag]
+
+        fvalue = getattr(msg, fname, None)
+        if fvalue is None:
+            continue
+
+        fkey = (ftag << 3) | ftype.WIRE_TYPE
+
+        if not fflags & FLAG_REPEATED:
+            repvalue[0] = fvalue
+            fvalue = repvalue
+
+        # length of all the field keys
+        nbytes += count_uvarint(fkey) * len(fvalue)
+
+        if ftype is UVarintType:
+            for svalue in fvalue:
+                nbytes += count_uvarint(svalue)
+
+        elif ftype is SVarintType:
+            for svalue in fvalue:
+                nbytes += count_uvarint(sint_to_uint(svalue))
+
+        elif ftype is BoolType:
+            for svalue in fvalue:
+                nbytes += count_uvarint(int(svalue))
+
+        elif ftype is BytesType:
+            for svalue in fvalue:
+                if isinstance(svalue, list):
+                    svalue = _count_bytes_list(svalue)
+                else:
+                    svalue = len(svalue)
+                nbytes += count_uvarint(svalue)
+                nbytes += svalue
+
+        elif ftype is UnicodeType:
+            for svalue in fvalue:
+                svalue = len(svalue.encode())
+                nbytes += count_uvarint(svalue)
+                nbytes += svalue
+
+        elif issubclass(ftype, MessageType):
+            ffields = ftype.get_fields()
+            for svalue in fvalue:
+                fsize = count_message(svalue, ffields)
+                nbytes += count_uvarint(fsize)
+                nbytes += fsize
+            del ffields
+
+        else:
+            raise TypeError
+
+    return nbytes
+
+
+def _count_bytes_list(svalue):
+    res = 0
+    for x in svalue:
+        res += len(x)
+    return res

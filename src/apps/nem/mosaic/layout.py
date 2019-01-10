@@ -12,16 +12,15 @@ from trezor.messages import (
 from trezor.ui.confirm import ConfirmDialog
 from trezor.ui.scroll import Scrollpage, animate_swipe, paginate
 from trezor.ui.text import Text
-from trezor.utils import split_words
 
 from ..layout import (
     require_confirm_content,
     require_confirm_fee,
     require_confirm_final,
     require_confirm_text,
-    split_address,
-    trim,
 )
+
+from apps.common.layout import split_address
 
 
 async def ask_mosaic_creation(
@@ -97,9 +96,10 @@ def _get_mosaic_properties(definition: NEMMosaicDefinition):
 
     # description
     if definition.description:
-        t = Text("Confirm properties", ui.ICON_SEND)
+        t = Text("Confirm properties", ui.ICON_SEND, new_lines=False)
         t.bold("Description:")
-        t.normal(*split_words(trim(definition.description, 70), 22))
+        t.br()
+        t.normal(*definition.description.split(" "))
         properties.append(t)
 
     # transferable

@@ -97,7 +97,7 @@ def _step(task, value):
             result = task.throw(value)
         else:
             result = task.send(value)
-    except StopIteration as e:
+    except StopIteration:  # as e:
         if __debug__:
             log.debug(__name__, "finish: %s", task)
     except Exception as e:
@@ -261,6 +261,8 @@ class spawn(Syscall):
             result = await child
         except Exception as e:
             self._finish(child, index, e)
+            if __debug__:
+                log.exception(__name__, e)
         else:
             self._finish(child, index, result)
 
