@@ -18,6 +18,7 @@ from apps.wallet.sign_tx import (
     addresses,
     decred,
     helpers,
+    komodo,
     multisig,
     progress,
     scripts,
@@ -25,7 +26,6 @@ from apps.wallet.sign_tx import (
     tx_weight,
     writers,
     zcash,
-    komodo
 )
 
 # the number of bip32 levels used in a wallet (chain and address)
