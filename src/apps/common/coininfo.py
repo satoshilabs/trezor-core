@@ -663,7 +663,7 @@ COINS = [
         bip115=False,
         decred=False,
         curve_name='secp256k1',
-    )
+    ),
     CoinInfo(
         coin_name="Koto",
         coin_shortcut="KOTO",
