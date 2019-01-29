@@ -18,7 +18,6 @@ from apps.wallet.sign_tx import (
     addresses,
     decred,
     helpers,
-    komodo,
     multisig,
     progress,
     scripts,
@@ -77,9 +76,9 @@ async def check_tx_fee(tx: SignTx, keychain: seed.Keychain):
             )
     elif coin.komodo and tx.overwintered:
         if tx.version == 3:
-            hash143 = komodo.Zip143()  # ZIP-0143 transaction hashing
+            hash143 = zcash.Zip143(hash_type='komodo')  # ZIP-0143 transaction hashing
         elif tx.version == 4:
-            hash143 = komodo.Zip243()  # ZIP-0243 transaction hashing
+            hash143 = zcash.Zip243(hash_type='komodo')  # ZIP-0243 transaction hashing
         else:
             raise SigningError(
                 FailureType.DataError,
