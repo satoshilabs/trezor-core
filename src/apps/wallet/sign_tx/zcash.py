@@ -45,10 +45,12 @@ def derive_script_code(txi: TxInputType, pubkeyhash: bytes) -> bytearray:
 
 
 class Zip143:
-    def __init__(self):
+    def __init__(self, hash_type='zcash'):
         self.h_prevouts = HashWriter(blake2b(outlen=32, personal=b"ZcashPrevoutHash"))
         self.h_sequence = HashWriter(blake2b(outlen=32, personal=b"ZcashSequencHash"))
         self.h_outputs = HashWriter(blake2b(outlen=32, personal=b"ZcashOutputsHash"))
+        self.hash_type = hash_type
+        self.hash_lock_offset = 777 if self.hash_type == 'komodo' else 0
 
     def add_prevouts(self, txi: TxInputType):
         write_bytes_reversed(self.h_prevouts, txi.prev_hash)
@@ -92,7 +94,8 @@ class Zip143:
         write_bytes(h_preimage, bytearray(self.get_sequence_hash()))  # 4. hashSequence
         write_bytes(h_preimage, bytearray(self.get_outputs_hash()))  # 5. hashOutputs
         write_bytes(h_preimage, b"\x00" * 32)  # 6. hashJoinSplits
-        write_uint32(h_preimage, tx.lock_time)  # 7. nLockTime
+
+        write_uint32(h_preimage, tx.lock_time - self.hash_lock_offset)  # 7. nLockTime
         write_uint32(h_preimage, tx.expiry)  # 8. expiryHeight
         write_uint32(h_preimage, sighash)  # 9. nHashType
 
@@ -139,7 +142,7 @@ class Zip243(Zip143):
         write_bytes(h_preimage, b"\x00" * 32)  # 6. hashJoinSplits
         write_bytes(h_preimage, b"\x00" * 32)  # 7. hashShieldedSpends
         write_bytes(h_preimage, b"\x00" * 32)  # 8. hashShieldedOutputs
-        write_uint32(h_preimage, tx.lock_time)  # 9. nLockTime
+        write_uint32(h_preimage, tx.lock_time - self.hash_lock_offset)  # 9. nLockTime
         write_uint32(h_preimage, tx.expiry)  # 10. expiryHeight
         write_uint64(h_preimage, 0)  # 11. valueBalance
         write_uint32(h_preimage, sighash)  # 12. nHashType
