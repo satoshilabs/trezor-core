@@ -50,7 +50,7 @@ static inline void sbu_active_pin_state(void) {
     GPIO_InitStructure.Alternate = GPIO_AF7_USART2;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-    GPIO_InitStructure.Pin = GPIO_PIN_2;
+    GPIO_InitStructure.Pin = GPIO_PIN_3;
     GPIO_InitStructure.Mode = GPIO_MODE_AF_OD;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);
 }
