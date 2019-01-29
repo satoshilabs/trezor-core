@@ -25,6 +25,7 @@ CPPDEFINES_MOD += [
     'AES_128',
     'AES_192',
     'RAND_PLATFORM_INDEPENDENT',
+    ('USE_BIP39_CACHE', '0'),
     ('USE_KECCAK', '1'),
     ('USE_ETHEREUM', '1'),
     ('USE_MONERO', '1'),
@@ -329,7 +330,6 @@ env.Replace(
         'vendor/micropython/lib/stm32lib/STM32F4xx_HAL_Driver/Inc',
         'vendor/micropython/lib/stm32lib/CMSIS/STM32F4xx/Include',
         'vendor/micropython/lib/cmsis/inc',
-        'vendor/micropython/ports/stm32',
     ] + CPPPATH_MOD,
     CPPDEFINES=[
         ('TREZOR_MODEL', '$TREZOR_MODEL'),
