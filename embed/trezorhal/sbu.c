@@ -22,7 +22,7 @@
 #include "common.h"
 #include "sbu.h"
 
-static USART_HandleTypeDef usart_handle;
+static UART_HandleTypeDef uart_handle;
 
 static inline void sbu_default_pin_state(void) {
     // SBU1/PA2 SBU2/PA3
@@ -59,18 +59,18 @@ void sbu_init(void) {
     sbu_default_pin_state();
 }
 
-void HAL_USART_MspInit(USART_HandleTypeDef *husart) {
+void HAL_UART_MspInit(UART_HandleTypeDef *huart) {
     // enable USART clock
     __HAL_RCC_USART2_CLK_ENABLE();
     // GPIO have already been initialised by sbu_init
 }
 
-void HAL_USART_MspDeInit(USART_HandleTypeDef *husart) {
+void HAL_UART_MspDeInit(UART_HandleTypeDef *huart) {
     __HAL_RCC_USART2_CLK_DISABLE();
 }
 
 void sbu_uart_on(void) {
-    if (usart_handle.Instance) {
+    if (uart_handle.Instance) {
         return;
     }
 
@@ -78,17 +78,15 @@ void sbu_uart_on(void) {
     sbu_active_pin_state();
     HAL_Delay(10);
 
-    usart_handle.Instance = USART2;
-    usart_handle.Init.BaudRate = 115200;
-    usart_handle.Init.WordLength = USART_WORDLENGTH_8B;
-    usart_handle.Init.StopBits = USART_STOPBITS_1;
-    usart_handle.Init.Parity = USART_PARITY_NONE;
-    usart_handle.Init.Mode = USART_MODE_TX_RX;
-    usart_handle.Init.CLKPolarity = USART_POLARITY_LOW;
-    usart_handle.Init.CLKPhase = USART_PHASE_1EDGE;
-    usart_handle.Init.CLKLastBit = USART_LASTBIT_DISABLE;
+    uart_handle.Instance = USART2;
+    uart_handle.Init.BaudRate = 115200;
+    uart_handle.Init.WordLength = UART_WORDLENGTH_8B;
+    uart_handle.Init.StopBits = UART_STOPBITS_1;
+    uart_handle.Init.Parity = UART_PARITY_NONE;
+    uart_handle.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+    uart_handle.Init.Mode = UART_MODE_TX_RX;
 
-    if (HAL_OK != HAL_USART_Init(&usart_handle)) {
+    if (HAL_OK != HAL_UART_Init(&uart_handle)) {
         ensure(secfalse, NULL);
         return;
     }
@@ -97,18 +95,18 @@ void sbu_uart_on(void) {
 }
 
 void sbu_uart_off(void) {
-    if (usart_handle.Instance) {
-        HAL_USART_DeInit(&usart_handle);
-        usart_handle.Instance = NULL;
+    if (uart_handle.Instance) {
+        HAL_UART_DeInit(&uart_handle);
+        uart_handle.Instance = NULL;
     }
-    // turn off USART
+    // turn off UART
     HAL_Delay(10);
     sbu_default_pin_state();
     HAL_Delay(10);
 }
 
 int sbu_read(uint8_t *data, uint16_t len) {
-    int res = HAL_USART_Receive(&usart_handle, data, len, 10000);
+    int res = HAL_UART_Receive(&uart_handle, data, len, 10000);
     ensure(sectrue * ((HAL_OK == res) || (HAL_TIMEOUT == res)), NULL);
     if (HAL_OK == res) {
         return len;
@@ -118,7 +116,7 @@ int sbu_read(uint8_t *data, uint16_t len) {
 }
 
 void sbu_write(const uint8_t *data, uint16_t len) {
-    ensure(sectrue * (HAL_OK == HAL_USART_Transmit(&usart_handle, (uint8_t *)data, len, 10000)), NULL);
+    ensure(sectrue * (HAL_OK == HAL_UART_Transmit(&uart_handle, (uint8_t *)data, len, 10000)), NULL);
 }
 
 void sbu_set_pins(secbool sbu1, secbool sbu2) {
