@@ -31,9 +31,13 @@ SOURCE_MOD += [
 ]
 
 # modtrezorui
+CPPDEFINES_MOD += [
+    'TREZOR_FONT_NORMAL_ENABLE',
+]
 SOURCE_MOD += [
     'embed/extmod/modtrezorui/display.c',
     'embed/extmod/modtrezorui/font_bitmap.c',
+    'embed/extmod/modtrezorui/font_roboto_regular_20.c',
 ]
 
 SOURCE_STMHAL = [
