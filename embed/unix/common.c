@@ -94,7 +94,7 @@ void __attribute__((noreturn)) error_shutdown(const char *line1, const char *lin
     display_text(8, y, "Please unplug the device.", -1, FONT_NORMAL, COLOR_WHITE, COLOR_FATAL_ERROR);
     printf("\nPlease unplug the device.\n");
     display_backlight(255);
-    hal_delay(30000);
+    hal_delay(5000);
     __shutdown();
     for (;;);
 }
