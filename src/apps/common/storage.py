@@ -175,11 +175,11 @@ def set_autolock_delay_ms(delay_ms: int) -> None:
 
 
 def next_u2f_counter() -> int:
-    return config.next_counter(_APP, _U2F_COUNTER, True) # writable when locked
+    return config.next_counter(_APP, _U2F_COUNTER, True)  # writable when locked
 
 
 def set_u2f_counter(cntr: int) -> None:
-    config.set_counter(_APP, _U2F_COUNTER, cntr, True) # writable when locked
+    config.set_counter(_APP, _U2F_COUNTER, cntr, True)  # writable when locked
 
 
 def wipe():
@@ -194,6 +194,8 @@ def init_unlocked():
         # Make the U2F counter public and writable even when storage is locked.
         counter = config.get(_APP, _U2F_COUNTER)
         if counter is not None:
-            config.set_counter(_APP, _U2F_COUNTER, counter, True) # writable when locked
+            config.set_counter(
+                _APP, _U2F_COUNTER, counter, True
+            )  # writable when locked
             config.delete(_APP, _U2F_COUNTER)
         config.set(_APP, _VERSION, _STORAGE_VERSION)
