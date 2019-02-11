@@ -51,6 +51,7 @@ void __attribute__((noreturn)) __fatal_error(const char *expr, const char *msg, 
 #ifdef GITREV
     display_printf("rev : %s\n", XSTR(GITREV));
 #endif
+    display_printf("\nPlease contact TREZOR support.\n");
     shutdown();
     for (;;);
 }

@@ -60,6 +60,8 @@ void __attribute__((noreturn)) __fatal_error(const char *expr, const char *msg, 
     display_printf("rev : %s\n", XSTR(GITREV));
     printf("rev : %s\n", XSTR(GITREV));
 #endif
+    display_printf("\nPlease contact TREZOR support.\n");
+    printf("\nPlease contact TREZOR support.\n");
     hal_delay(3000);
     __shutdown();
     for (;;);
