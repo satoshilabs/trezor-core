@@ -11,7 +11,7 @@ PINKEY = 0x00
 
 def random_entry():
     while True:
-        appid, key = 1 + random.uniform(127), random.uniform(256)
+        appid, key = 1 + random.uniform(63), random.uniform(256)
         if appid != PINAPP or key != PINKEY:
             break
     return appid, key
@@ -41,7 +41,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(v1, None)
 
     def test_lock(self):
-        for _ in range(128):
+        for i in range(128):
             config.init()
             config.wipe()
             self.assertEqual(config.unlock(pin_to_int('')), True)
