@@ -41,7 +41,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(v1, None)
 
     def test_lock(self):
-        for i in range(128):
+        for _ in range(128):
             config.init()
             config.wipe()
             self.assertEqual(config.unlock(pin_to_int('')), True)
