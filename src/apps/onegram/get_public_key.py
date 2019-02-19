@@ -5,7 +5,7 @@ from trezor.crypto import base58
 from trezor import wire
 
 from apps.common import seed
-from apps.eos.layout import require_get_public_key
+from apps.onegram.layout import require_get_public_key
 
 
 def _ripemd160_32(data: bytes) -> bytes:
