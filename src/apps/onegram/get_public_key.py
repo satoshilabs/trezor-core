@@ -20,7 +20,7 @@ def _public_key_to_wif(pub_key: bytes) -> str:
         compresed_pub_key = pub_key
     else:
         raise wire.DataError("invalid public key length")
-    return 'ONEGRAM' + base58.encode_check(compresed_pub_key, _ripemd160_32)
+    return 'OGC' + base58.encode_check(compresed_pub_key, _ripemd160_32)
 
 
 def _get_public_key(node):
