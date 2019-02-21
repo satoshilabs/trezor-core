@@ -25,3 +25,10 @@ TREZOR_PROFILE=/var/tmp/foobar ./emu.sh
 ```
 
 When the **TREZOR_PROFILE** is not set the default is ```/var/tmp``` .
+
+
+## Docker instance
+
+If you need Trezor emulator just as a service without need to setup the build environment you can make use of a docker.
+
+Read more on [emulator in docker](../docker/emulator/README.md)

@@ -1,6 +1,7 @@
 # initialize from the image
 
-FROM debian:9
+ARG BASE_IMAGE=debian:9
+FROM ${BASE_IMAGE} AS base
 
 ARG TOOLCHAIN_FLAVOR=linux
 ENV TOOLCHAIN_FLAVOR=$TOOLCHAIN_FLAVOR
