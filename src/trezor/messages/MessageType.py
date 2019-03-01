@@ -169,6 +169,7 @@ MoneroGetWatchKey = 542
 MoneroWatchKey = 543
 DebugMoneroDiagRequest = 546
 DebugMoneroDiagAck = 547
+<<<<<<< b8bf76f98df6381e3e1ad70038801561227c6b67
 MoneroGetTxKeyRequest = 550
 MoneroGetTxKeyAck = 551
 MoneroLiveRefreshStartRequest = 552
@@ -194,3 +195,7 @@ BinanceOrderMsg = 707
 BinanceCancelMsg = 708
 BinanceSignedTx = 709
 OnegramGetPublicKey = 550
+OnegramGetPublicKey = 600
+OnegramPublicKey = 601
+OnegramSignTx = 602
+OnegramSignedTx = 603
