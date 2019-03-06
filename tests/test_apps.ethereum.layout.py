@@ -46,6 +46,8 @@ class TestEthereumLayout(unittest.TestCase):
         self.assertEqual(text, '1 ETC')
         text = format_ethereum_amount(1000000000000000000, None, 31)
         self.assertEqual(text, '1 tRBTC')
+        text = format_ethereum_amount(1000000000000000000, None, 237)
+        self.assertEqual(text, '1 DXN')
 
         text = format_ethereum_amount(1000000000000000001, None, 1)
         self.assertEqual(text, '1.000000000000000001 ETH')
