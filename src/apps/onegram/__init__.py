@@ -1,6 +1,10 @@
 from trezor import wire
 from trezor.messages import MessageType
 
+from apps.common import HARDENED
+
 
 def boot():
-    wire.add(MessageType.OnegramGetPublicKey, __name__, "get_public_key")
+    ns = [["secp256k1", HARDENED | 44, HARDENED | 274]]
+    wire.add(MessageType.OnegramGetPublicKey, __name__, "get_public_key", ns)
+    wire.add(MessageType.OnegramSignTx, __name__, "sign_tx", ns)
