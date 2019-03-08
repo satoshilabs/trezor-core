@@ -30,9 +30,9 @@ def _get_public_key(node):
     return wif, public_key
 
 
-async def get_public_key(ctx, msg: OnegramGetPublicKey):
+async def get_public_key(ctx, msg: OnegramGetPublicKey, keychain):
     address_n = msg.address_n or ()
-    node = await seed.derive_node(ctx, address_n)
+    node = keychain.derive(ctx, address_n)
     wif, public_key = _get_public_key(node)
     if msg.show_display:
         await require_get_public_key(ctx, wif)
