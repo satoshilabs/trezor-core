@@ -6,12 +6,17 @@ from trezor.crypto.hashlib import sha256
 from trezor.utils import HashWriter
 from trezor.messages.OnegramSignedTx import OnegramSignedTx
 
+from apps.onegram import layout
 from apps.onegram import writers
 
 
 async def sign_tx(ctx, msg, keychain):
     check(msg)
     node = keychain.derive(msg.address_n, "secp256k1")
+
+    await layout.require_confirm_tx(ctx, msg.source, msg.destination,
+                                    msg.amount.amount)
+    await layout.require_confirm_fee(ctx, msg.amount.amount, msg.fee.amount)
 
     w = bytearray()
     writers.write_common(w, msg)
