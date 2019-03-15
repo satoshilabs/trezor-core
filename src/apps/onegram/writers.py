@@ -40,7 +40,7 @@ def write_transfer(w: bytearray, msg: OnegramSignTx):
 
 
 def write_varint(w: bytearray, val: int):
-    data = b''
+    data = b'' if val >= 0x80 else bytes([val])
     while val >= 0x80:
         data += bytes([(val & 0x7f) | 0x80])
         val >>= 7
