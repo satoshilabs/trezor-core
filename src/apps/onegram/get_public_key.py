@@ -1,4 +1,5 @@
 from trezor.messages.OnegramGetPublicKey import OnegramGetPublicKey
+from trezor.messages.OnegramPublicKey import OnegramPublicKey
 from trezor.crypto.curve import secp256k1
 from trezor.crypto.hashlib import ripemd160
 from trezor.crypto import base58
@@ -31,9 +32,8 @@ def _get_public_key(node):
 
 
 async def get_public_key(ctx, msg: OnegramGetPublicKey, keychain):
-    address_n = msg.address_n or ()
-    node = keychain.derive(ctx, address_n)
+    node = keychain.derive(msg.address_n, "secp256k1")
     wif, public_key = _get_public_key(node)
     if msg.show_display:
         await require_get_public_key(ctx, wif)
-    return OnegramGetPublicKey(wif, public_key)
+    return OnegramPublicKey(wif, public_key)
