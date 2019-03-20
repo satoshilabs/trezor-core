@@ -17,6 +17,7 @@ import apps.lisk
 import apps.monero
 import apps.nem
 import apps.stellar
+import apps.kin
 import apps.ripple
 import apps.cardano
 import apps.tezos
@@ -35,6 +36,7 @@ apps.lisk.boot()
 apps.monero.boot()
 apps.nem.boot()
 apps.stellar.boot()
+apps.kin.boot()
 apps.ripple.boot()
 apps.cardano.boot()
 apps.tezos.boot()
