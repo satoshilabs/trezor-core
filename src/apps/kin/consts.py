@@ -43,7 +43,7 @@ ASSET_TYPE_ALPHANUM12 = const(2)
 
 # https://www.kin.org/developers/guides/concepts/accounts.html#balance
 # https://github.com/stellar/go/blob/3d2c1defe73dbfed00146ebe0e8d7e07ce4bb1b6/amount/main.go#L23
-AMOUNT_DIVISIBILITY = const(7)
+AMOUNT_DIVISIBILITY = const(5)
 
 # https://github.com/stellar/go/blob/master/network/main.go
 NETWORK_PASSPHRASE_PUBLIC = "Kin Mainnet ; December 2018"

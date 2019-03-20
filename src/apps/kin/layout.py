@@ -59,7 +59,7 @@ async def require_confirm_final(ctx, fee: int, num_operations: int):
 def format_amount(amount: int, ticker=True) -> str:
     t = ""
     if ticker:
-        t = " XLM"
+        t = " KIN"
     return utils.format_amount(amount, consts.AMOUNT_DIVISIBILITY) + t
 
 
