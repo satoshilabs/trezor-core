@@ -15,7 +15,7 @@ from apps.kin.operations import process_operation
 async def sign_tx(ctx, msg: KinSignTx, keychain):
     await paths.validate_path(ctx, helpers.validate_full_path, path=msg.address_n)
 
-    node = keychain.derive(msg.address_n, consts.STELLAR_CURVE)
+    node = keychain.derive(msg.address_n, consts.KIN_CURVE)
     pubkey = seed.remove_ed25519_prefix(node.public_key())
 
     if msg.num_operations == 0:

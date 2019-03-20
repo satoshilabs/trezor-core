@@ -9,7 +9,7 @@ from apps.kin import helpers
 async def get_address(ctx, msg: KinGetAddress, keychain):
     await paths.validate_path(ctx, helpers.validate_full_path, path=msg.address_n)
 
-    node = keychain.derive(msg.address_n, helpers.STELLAR_CURVE)
+    node = keychain.derive(msg.address_n, helpers.KIN_CURVE)
     pubkey = seed.remove_ed25519_prefix(node.public_key())
     address = helpers.address_from_public_key(pubkey)
 

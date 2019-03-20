@@ -5,7 +5,7 @@ from trezor.wire import ProcessError
 
 from apps.common import HARDENED
 
-STELLAR_CURVE = "ed25519"
+KIN_CURVE = "ed25519"
 
 
 def public_key_from_address(address: str) -> bytes:
