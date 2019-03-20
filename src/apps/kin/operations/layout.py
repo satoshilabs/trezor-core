@@ -43,7 +43,7 @@ async def confirm_allow_trust_op(ctx, op: KinAllowTrustOp):
 async def confirm_account_merge_op(ctx, op: KinAccountMergeOp):
     text = Text("Confirm operation", ui.ICON_CONFIRM, icon_color=ui.GREEN)
     text.bold("Account Merge")
-    text.normal("All XLM will be sent to:")
+    text.normal("All KIN will be sent to:")
     text.mono(*split(trim_to_rows(op.destination_account, 3)))
     await require_confirm(ctx, text, ButtonRequestType.ConfirmOutput)
 
@@ -237,7 +237,7 @@ def _format_flags(flags: int) -> tuple:
 
 def format_asset_code(asset: KinAssetType) -> str:
     if asset is None or asset.type == consts.ASSET_TYPE_NATIVE:
-        return "XLM (native)"
+        return "KIN (native)"
     return asset.code
 
 
