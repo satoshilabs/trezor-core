@@ -1,5 +1,7 @@
 from trezor.messages import EosAsset
 
+from apps.common import HARDENED, paths
+
 
 def eos_name_to_string(value) -> str:
     charmap = ".12345abcdefghijklmnopqrstuvwxyz"
@@ -17,67 +19,16 @@ def eos_name_to_string(value) -> str:
     return string[:actual_size]
 
 
-def eos_name_string_to_number(name: str) -> int:
-    length = len(name)
-    value = 0
-
-    for i in range(0, 13):
-        c = 0
-        if i < length and i < 13:
-            c = char_to_symbol(name[i])
-
-        if i < 12:
-            c &= 0x1F
-            c <<= 64 - 5 * (i + 1)
-        else:
-            c &= 0x0F
-
-        value |= c
-
-    return value
-
-
-def char_to_symbol(c: chr) -> int:
-    if "a" <= c <= "z":
-        return ord(c) - ord("a") + 6
-    if "1" <= c <= "5":
-        return ord(c) - ord("1") + 1
-    return 0
-
-
-def symbol_to_string(sym: int) -> str:
-    sym >>= 8
-    string = ""
-    for _ in range(0, 7):
-        c = chr(sym & 0xFF)
-        if not c:
-            break
-        string += c
-        sym >>= 8
-
-    return string.rstrip("\x00")
-
-
-def extract_precision_from_symbol(sym: int) -> (int, int):
-    return sym & 0xFF
-
-
 def eos_asset_to_string(asset: EosAsset) -> str:
-    integer = fraction = symbol = ""
+    symbol_bytes = int.to_bytes(asset.symbol, 8, "big")
+    precision = symbol_bytes[7]
+    symbol = bytes(reversed(symbol_bytes[:7])).rstrip(b"\x00").decode("ascii")
 
-    p = extract_precision_from_symbol(asset.symbol)
-    p10 = 10 ** p
-    # integer part
-    integer += str(int(asset.amount / p10))
-
-    # fraction part
-    remainder = asset.amount % p10
-    for _ in range(p, 0, -1):
-        fraction = str(int(remainder % 10)) + fraction
-        remainder /= 10
-
-    # symbol part
-    symbol += symbol_to_string(asset.symbol)
+    amount_digits = str(asset.amount)
+    if precision > 0:
+        integer, fraction = amount_digits[:-precision], amount_digits[-precision:]
+    else:
+        integer, fraction = amount_digits, ""
 
     return "%s.%s %s" % (integer, fraction, symbol)
 
@@ -95,3 +46,25 @@ def pack_variant32(value: int) -> str:
             break
 
     return bytes(out)
+
+
+def validate_full_path(path: list) -> bool:
+    """
+    Validates derivation path to equal 44'/194'/a'/0/0,
+    where `a` is an account index from 0 to 1 000 000.
+    Similar to Ethereum this should be 44'/194'/a', but for
+    compatibility with other HW vendors we use 44'/194'/a'/0/0.
+    """
+    if len(path) != 5:
+        return False
+    if path[0] != 44 | HARDENED:
+        return False
+    if path[1] != 194 | HARDENED:
+        return False
+    if path[2] < HARDENED or path[2] > 1000000 | HARDENED:
+        return False
+    if path[3] != 0:
+        return False
+    if path[4] != 0:
+        return False
+    return True

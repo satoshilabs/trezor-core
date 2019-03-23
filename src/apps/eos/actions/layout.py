@@ -19,7 +19,7 @@ from trezor.messages import (
     MessageType,
 )
 from trezor.messages.ButtonRequest import ButtonRequest
-from trezor.ui.confirm import ConfirmDialog
+from trezor.ui.confirm import ConfirmDialog, CONFIRMED
 from trezor.ui.scroll import Scrollpage, animate_swipe, paginate
 from trezor.ui.text import Text
 from trezor.utils import chunks
@@ -89,9 +89,9 @@ async def confirm_action_delegate(ctx, msg: EosActionDelegate):
     fields.append("Receiver:")
     fields.append(helpers.eos_name_to_string(msg.receiver))
     fields.append("CPU:")
-    fields.append(helpers.eos_asset_to_string(msg.stake_cpu_quantity))
+    fields.append(helpers.eos_asset_to_string(msg.cpu_quantity))
     fields.append("NET:")
-    fields.append(helpers.eos_asset_to_string(msg.stake_net_quantity))
+    fields.append(helpers.eos_asset_to_string(msg.net_quantity))
 
     if msg.transfer:
         fields.append("Transfer to:")
@@ -133,9 +133,9 @@ async def confirm_action_undelegate(ctx, msg: EosActionUndelegate):
     fields.append("Receiver:")
     fields.append(helpers.eos_name_to_string(msg.receiver))
     fields.append("CPU:")
-    fields.append(helpers.eos_asset_to_string(msg.unstake_cpu_quantity))
+    fields.append(helpers.eos_asset_to_string(msg.cpu_quantity))
     fields.append("NET:")
-    fields.append(helpers.eos_asset_to_string(msg.unstake_net_quantity))
+    fields.append(helpers.eos_asset_to_string(msg.net_quantity))
 
     pages = list(chunks(fields, FOUR_FIELDS_PER_PAGE))
     paginator = paginate(show_lines_page, len(pages), FIRST_PAGE, pages, text)
@@ -316,16 +316,16 @@ async def confirm_action_unknown(ctx, action, checksum):
 
 @ui.layout
 async def show_lines_page(page: int, page_count: int, pages: list, header: str):
-    lines = ["%s" % field for field in pages[page]]
     if header == "Arbitrary data":
         text = Text("{} !!!".format(header), ui.ICON_WIPE, icon_color=ui.RED)
     else:
         text = Text("{}".format(header), ui.ICON_CONFIRM, icon_color=ui.GREEN)
-    text.mono(*lines)
+    text.mono(*pages[page])
 
     content = Scrollpage(text, page, page_count)
     if page + 1 == page_count:
-        await ConfirmDialog(content)
+        if await ConfirmDialog(content) != CONFIRMED:
+            raise wire.ActionCancelled("Action cancelled")
     else:
         content.render()
         await animate_swipe()
@@ -342,7 +342,8 @@ async def show_voter_page(page: int, page_count: int, pages: list):
     content = Scrollpage(text, page, page_count)
 
     if page + 1 == page_count:
-        await ConfirmDialog(content)
+        if await ConfirmDialog(content) != CONFIRMED:
+            raise wire.ActionCancelled("Action cancelled")
     else:
         content.render()
         await animate_swipe()
@@ -352,11 +353,11 @@ def authorization_fields(auth):
     fields = []
 
     fields.append("Threshold:")
-    fields.append(auth.threshold)
+    fields.append(str(auth.threshold))
 
     for i, key in enumerate(auth.keys):
         _key = _public_key_to_wif(bytes(key.key))
-        _weight = key.weight
+        _weight = str(key.weight)
 
         header = "Key #{}:".format(i + 1)
         w_header = "Key #{} Weight:".format(i + 1)
@@ -378,11 +379,11 @@ def authorization_fields(auth):
         fields.append(p_header)
         fields.append(_permission)
         fields.append(w_header)
-        fields.append(account.weight)
+        fields.append(str(account.weight))
 
     for i, wait in enumerate(auth.waits):
-        _wait = wait.wait_sec
-        _weight = wait.weight
+        _wait = str(wait.wait_sec)
+        _weight = str(wait.weight)
 
         header = "Delay #{}".format(i + 1)
         w_height = "Delay #{} weight:".format(i + 1)

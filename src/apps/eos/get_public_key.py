@@ -1,11 +1,12 @@
 from trezor import wire
-from trezor.crypto import base58
+from trezor.crypto import base58, bip32
 from trezor.crypto.curve import secp256k1
 from trezor.crypto.hashlib import ripemd160
 from trezor.messages.EosGetPublicKey import EosGetPublicKey
 from trezor.messages.EosPublicKey import EosPublicKey
 
-from apps.common import seed
+from apps.common import paths
+from apps.eos.helpers import validate_full_path
 from apps.eos.layout import require_get_public_key
 
 
@@ -31,9 +32,10 @@ def _get_public_key(node):
     return wif, public_key
 
 
-async def get_public_key(ctx, msg: EosGetPublicKey):
-    address_n = msg.address_n or ()
-    node = await seed.derive_node(ctx, address_n)
+async def get_public_key(ctx, msg: EosGetPublicKey, keychain):
+    await paths.validate_path(ctx, validate_full_path, path=msg.address_n)
+
+    node = keychain.derive(msg.address_n)
     wif, public_key = _get_public_key(node)
     if msg.show_display:
         await require_get_public_key(ctx, wif)
