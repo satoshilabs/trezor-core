@@ -12,8 +12,7 @@ from trezor.messages.OnegramTxHeader import OnegramTxHeader
 
 
 def write_common(w: bytearray, msg: OnegramSignTx):
-    written = write_bytes(w, bytearray(msg.chain_id))
-    written += write_header(w, msg.header)
+    written = write_header(w, msg.header)
     written += write_uint8(w, 1)  # the number of operations
     return written
 
