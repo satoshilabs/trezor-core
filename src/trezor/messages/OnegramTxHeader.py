@@ -7,18 +7,18 @@ class OnegramTxHeader(p.MessageType):
 
     def __init__(
         self,
-        ref_block_num: int = None,
-        ref_block_prefix: int = None,
+        head_block_number: int = None,
+        head_block_id: bytes = None,
         expiration: int = None,
     ) -> None:
-        self.ref_block_num = ref_block_num
-        self.ref_block_prefix = ref_block_prefix
+        self.head_block_number = head_block_number
+        self.head_block_id = head_block_id
         self.expiration = expiration
 
     @classmethod
     def get_fields(cls):
         return {
-            1: ('ref_block_num', p.UVarintType, 0),
-            2: ('ref_block_prefix', p.UVarintType, 0),
+            1: ('head_block_number', p.UVarintType, 0),
+            2: ('head_block_id', p.BytesType, 0),
             3: ('expiration', p.UVarintType, 0),
         }

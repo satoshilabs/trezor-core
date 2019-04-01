@@ -1,3 +1,5 @@
+import ustruct
+
 from apps.common.writers import (
     write_bytes,
     write_uint16_le,
@@ -18,8 +20,12 @@ def write_common(w: bytearray, msg: OnegramSignTx):
 
 
 def write_header(w: bytearray, header: OnegramTxHeader):
-    written = write_uint16_le(w, header.ref_block_num)
-    written += write_uint32_le(w, header.ref_block_prefix)
+    ref_block_num = header.head_block_number & 0xFFFF
+    written = write_uint16_le(w, ref_block_num)
+
+    ref_block_prefix = ustruct.unpack_from('<I', header.head_block_id, 4)[0]
+    written += write_uint32_le(w, ref_block_prefix)
+
     written += write_uint32_le(w, header.expiration)
     return written
 
