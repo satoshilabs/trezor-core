@@ -33,9 +33,6 @@ async def process_action(ctx, sha, action):
     elif name == "refund":
         await layout.confirm_action_refund(ctx, action.refund)
         writers.write_action_refund(w, action.refund)
-    elif name == "transfer":
-        await layout.confirm_action_transfer(ctx, action.transfer, account)
-        writers.write_action_transfer(w, action.transfer)
     elif name == "voteproducer":
         await layout.confirm_action_voteproducer(ctx, action.vote_producer)
         writers.write_action_voteproducer(w, action.vote_producer)
@@ -54,6 +51,9 @@ async def process_action(ctx, sha, action):
     elif name == "newaccount":
         await layout.confirm_action_newaccount(ctx, action.new_account)
         writers.write_action_newaccount(w, action.new_account)
+    elif name == "transfer":
+        await layout.confirm_action_transfer(ctx, action.transfer, account)
+        writers.write_action_transfer(w, action.transfer)
     else:
         await process_unknown_action(ctx, w, action)
 
@@ -91,25 +91,27 @@ async def process_unknown_action(ctx, w, action):
 def check_action(action, name, account):
     if account == "eosio":
         if (
-            (action.buy_ram is not None and name == "buyram")
-            or (action.buy_ram_bytes is not None name == "buyrambytes")
-            or (action.sell_ram is not None and name == "sellram")
-            or (action.delegate is not None and name == "delegatebw")
-            or (action.undelegate is not None and name == "undelegatebw")
-            or (action.refund is not None and name == "refund")
-            or (action.vote_producer is not None and name == "voteproducer")
-            or (action.update_auth is not None and name == "updateauth")
-            or (action.delete_auth is not None and name == "deleteauth")
-            or (action.link_auth is not None and name == "linkauth")
-            or (action.unlink_auth is not None and name == "unlinkauth")
-            or (action.new_account is not None and name == "newaccount")
+            (name == "buyram" and action.buy_ram is not None)
+            or (name == "buyrambytes" and action.buy_ram_bytes is not None)
+            or (name == "sellram" and action.sell_ram is not None)
+            or (name == "delegatebw" and action.delegate is not None)
+            or (name == "undelegatebw" and action.undelegate is not None)
+            or (name == "refund" and action.refund is not None)
+            or (name == "voteproducer" and action.vote_producer is not None)
+            or (name == "updateauth" and action.update_auth is not None)
+            or (name == "deleteauth" and action.delete_auth is not None)
+            or (name == "linkauth" and action.link_auth is not None)
+            or (name == "unlinkauth" and action.unlink_auth is not None)
+            or (name == "newaccount" and action.new_account is not None)
         ):
             return True
+        else:
+            return False
 
-    elif action.transfer is not None and name == "transfer":
-        return True
+    elif name == "transfer":
+        return True if action.transfer is not None else False
 
-    if action.unknown is not None:
+    elif action.unknown is not None:
         return True
 
     return False

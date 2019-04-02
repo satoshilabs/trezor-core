@@ -154,7 +154,7 @@ async def confirm_action_refund(ctx, msg: EosActionRefund):
 
 
 async def confirm_action_voteproducer(ctx, msg: EosActionVoteProducer):
-    if msg.proxy != 0 and not msg.producers:
+    if msg.proxy and not msg.producers:
         # PROXY
         text = Text("Vote for proxy", ui.ICON_CONFIRM, icon_color=ui.GREEN)
         text.normal("Voter:")

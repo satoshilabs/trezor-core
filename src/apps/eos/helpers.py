@@ -7,16 +7,14 @@ def eos_name_to_string(value) -> str:
     charmap = ".12345abcdefghijklmnopqrstuvwxyz"
     tmp = value
     string = ""
-    actual_size = 13
     for i in range(0, 13):
         c = charmap[tmp & (0x0F if i == 0 else 0x1F)]
         string = c + string
         tmp >>= 4 if i == 0 else 5
 
-    while actual_size != 0 and string.rstrip("."):
-        actual_size -= 1
+    string = string.rstrip(".")
 
-    return string[:actual_size]
+    return string
 
 
 def eos_asset_to_string(asset: EosAsset) -> str:
@@ -27,10 +25,9 @@ def eos_asset_to_string(asset: EosAsset) -> str:
     amount_digits = str(asset.amount)
     if precision > 0:
         integer, fraction = amount_digits[:-precision], amount_digits[-precision:]
+        return "{}.{} {}".format(integer, fraction, symbol)
     else:
-        integer, fraction = amount_digits, ""
-
-    return "%s.%s %s" % (integer, fraction, symbol)
+        return "{} {}".format(amount_digits, symbol)
 
 
 def pack_variant32(value: int) -> str:

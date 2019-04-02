@@ -16,7 +16,7 @@ def _ripemd160_32(data: bytes) -> bytes:
 
 def _public_key_to_wif(pub_key: bytes) -> str:
     if len(pub_key) == 65:
-        head = 0x03 if (pub_key[64] & 0x01) == 1 else 0x02
+        head = 0x03 if pub_key[64] & 0x01 else 0x02
         compresed_pub_key = bytes([head]) + pub_key[1:33]
     elif len(pub_key) == 33:
         compresed_pub_key = pub_key

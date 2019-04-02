@@ -32,9 +32,7 @@ async def sign_tx(ctx, msg: EosSignTx, keychain):
     )
 
     resp = EosSignedTx()
-    resp.signature_v = signature[0]
-    resp.signature_r = signature[1:33]
-    resp.signature_s = signature[33:]
+    resp.signature = signature
 
     return resp
 
