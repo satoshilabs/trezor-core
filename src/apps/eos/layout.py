@@ -14,6 +14,6 @@ async def require_get_public_key(ctx, public_key):
 async def require_sign_tx(ctx, num_actions):
     text = Text("Sign transaction", ui.ICON_SEND, icon_color=ui.GREEN)
     text.normal("You are about")
-    text.normal("to sign %d" % num_actions)
+    text.normal("to sign {}".format(num_actions))
     text.normal("action(s).")
     return await require_confirm(ctx, text, code=ButtonRequestType.SignTx)

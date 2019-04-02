@@ -13,7 +13,7 @@ def eos_name_to_string(value) -> str:
         string = c + string
         tmp >>= 4 if i == 0 else 5
 
-    while actual_size != 0 and string[actual_size - 1] == ".":
+    while actual_size != 0 and string.rstrip("."):
         actual_size -= 1
 
     return string[:actual_size]

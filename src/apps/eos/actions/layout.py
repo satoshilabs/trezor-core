@@ -94,8 +94,11 @@ async def confirm_action_delegate(ctx, msg: EosActionDelegate):
     fields.append(helpers.eos_asset_to_string(msg.net_quantity))
 
     if msg.transfer:
-        fields.append("Transfer to:")
+        fields.append("Transfer: Yes")
+        fields.append("Receiver:")
         fields.append(helpers.eos_name_to_string(msg.receiver))
+    else:
+        fields.append("Transfer: No")
 
     pages = list(chunks(fields, FOUR_FIELDS_PER_PAGE))
     paginator = paginate(show_lines_page, len(pages), FIRST_PAGE, pages, text)
@@ -178,7 +181,7 @@ async def confirm_action_voteproducer(ctx, msg: EosActionVoteProducer):
         await require_confirm(ctx, text, ButtonRequestType.ConfirmOutput)
 
 
-async def confirm_action_transfer(ctx, msg: EosActionTransfer):
+async def confirm_action_transfer(ctx, msg: EosActionTransfer, account):
     await ctx.call(
         ButtonRequest(code=ButtonRequestType.ConfirmOutput), MessageType.ButtonAck
     )
@@ -191,6 +194,8 @@ async def confirm_action_transfer(ctx, msg: EosActionTransfer):
     fields.append(helpers.eos_name_to_string(msg.receiver))
     fields.append("Amount:")
     fields.append(helpers.eos_asset_to_string(msg.quantity))
+    fields.append("Contract:")
+    fields.append("{}".format(account))
 
     if msg.memo is not None:
         fields.append("Memo:")
@@ -334,7 +339,7 @@ async def show_lines_page(page: int, page_count: int, pages: list, header: str):
 @ui.layout
 async def show_voter_page(page: int, page_count: int, pages: list):
     lines = [
-        "%2d. %s" % (wi + 1, helpers.eos_name_to_string(producer))
+        "{:2d}. {}".format(wi + 1, helpers.eos_name_to_string(producer))
         for wi, producer in pages[page]
     ]
     text = Text("Vote for producers", ui.ICON_CONFIRM, icon_color=ui.GREEN)
@@ -386,10 +391,10 @@ def authorization_fields(auth):
         _weight = str(wait.weight)
 
         header = "Delay #{}".format(i + 1)
-        w_height = "Delay #{} weight:".format(i + 1)
+        w_header = "Delay #{} weight:".format(i + 1)
         fields.append(header)
         fields.append("{} sec".format(_wait))
-        fields.append(w_height)
+        fields.append(w_header)
         fields.append(_weight)
 
     return fields
