@@ -4,7 +4,7 @@ import protobuf as p
 
 
 class OnegramSignedTx(p.MessageType):
-    MESSAGE_WIRE_TYPE = 603
+    MESSAGE_WIRE_TYPE = 803
 
     def __init__(
         self,

@@ -4,7 +4,7 @@ import protobuf as p
 
 
 class OnegramPublicKey(p.MessageType):
-    MESSAGE_WIRE_TYPE = 601
+    MESSAGE_WIRE_TYPE = 801
 
     def __init__(
         self,

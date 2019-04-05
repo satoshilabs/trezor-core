@@ -13,7 +13,7 @@ if __debug__:
 
 
 class OnegramSignTx(p.MessageType):
-    MESSAGE_WIRE_TYPE = 602
+    MESSAGE_WIRE_TYPE = 802
 
     def __init__(
         self,

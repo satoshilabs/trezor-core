@@ -10,7 +10,7 @@ if __debug__:
 
 
 class OnegramGetPublicKey(p.MessageType):
-    MESSAGE_WIRE_TYPE = 600
+    MESSAGE_WIRE_TYPE = 800
 
     def __init__(
         self,
