@@ -15,42 +15,43 @@ async def process_action(ctx, sha, action):
         raise ValueError("Invalid action")
 
     w = bytearray()
-    if name == "buyram":
-        await layout.confirm_action_buyram(ctx, action.buy_ram)
-        writers.write_action_buyram(w, action.buy_ram)
-    elif name == "buyrambytes":
-        await layout.confirm_action_buyrambytes(ctx, action.buy_ram_bytes)
-        writers.write_action_buyrambytes(w, action.buy_ram_bytes)
-    elif name == "sellram":
-        await layout.confirm_action_sellram(ctx, action.sell_ram)
-        writers.write_action_sellram(w, action.sell_ram)
-    elif name == "delegatebw":
-        await layout.confirm_action_delegate(ctx, action.delegate)
-        writers.write_action_delegate(w, action.delegate)
-    elif name == "undelegatebw":
-        await layout.confirm_action_undelegate(ctx, action.undelegate)
-        writers.write_action_undelegate(w, action.undelegate)
-    elif name == "refund":
-        await layout.confirm_action_refund(ctx, action.refund)
-        writers.write_action_refund(w, action.refund)
-    elif name == "voteproducer":
-        await layout.confirm_action_voteproducer(ctx, action.vote_producer)
-        writers.write_action_voteproducer(w, action.vote_producer)
-    elif name == "updateauth":
-        await layout.confirm_action_updateauth(ctx, action.update_auth)
-        writers.write_action_updateauth(w, action.update_auth)
-    elif name == "deleteauth":
-        await layout.confirm_action_deleteauth(ctx, action.delete_auth)
-        writers.write_action_deleteauth(w, action.delete_auth)
-    elif name == "linkauth":
-        await layout.confirm_action_linkauth(ctx, action.link_auth)
-        writers.write_action_linkauth(w, action.link_auth)
-    elif name == "unlinkauth":
-        await layout.confirm_action_unlinkauth(ctx, action.unlink_auth)
-        writers.write_action_unlinkauth(w, action.unlink_auth)
-    elif name == "newaccount":
-        await layout.confirm_action_newaccount(ctx, action.new_account)
-        writers.write_action_newaccount(w, action.new_account)
+    if account == "eosio":
+        if name == "buyram":
+            await layout.confirm_action_buyram(ctx, action.buy_ram)
+            writers.write_action_buyram(w, action.buy_ram)
+        elif name == "buyrambytes":
+            await layout.confirm_action_buyrambytes(ctx, action.buy_ram_bytes)
+            writers.write_action_buyrambytes(w, action.buy_ram_bytes)
+        elif name == "sellram":
+            await layout.confirm_action_sellram(ctx, action.sell_ram)
+            writers.write_action_sellram(w, action.sell_ram)
+        elif name == "delegatebw":
+            await layout.confirm_action_delegate(ctx, action.delegate)
+            writers.write_action_delegate(w, action.delegate)
+        elif name == "undelegatebw":
+            await layout.confirm_action_undelegate(ctx, action.undelegate)
+            writers.write_action_undelegate(w, action.undelegate)
+        elif name == "refund":
+            await layout.confirm_action_refund(ctx, action.refund)
+            writers.write_action_refund(w, action.refund)
+        elif name == "voteproducer":
+            await layout.confirm_action_voteproducer(ctx, action.vote_producer)
+            writers.write_action_voteproducer(w, action.vote_producer)
+        elif name == "updateauth":
+            await layout.confirm_action_updateauth(ctx, action.update_auth)
+            writers.write_action_updateauth(w, action.update_auth)
+        elif name == "deleteauth":
+            await layout.confirm_action_deleteauth(ctx, action.delete_auth)
+            writers.write_action_deleteauth(w, action.delete_auth)
+        elif name == "linkauth":
+            await layout.confirm_action_linkauth(ctx, action.link_auth)
+            writers.write_action_linkauth(w, action.link_auth)
+        elif name == "unlinkauth":
+            await layout.confirm_action_unlinkauth(ctx, action.unlink_auth)
+            writers.write_action_unlinkauth(w, action.unlink_auth)
+        elif name == "newaccount":
+            await layout.confirm_action_newaccount(ctx, action.new_account)
+            writers.write_action_newaccount(w, action.new_account)
     elif name == "transfer":
         await layout.confirm_action_transfer(ctx, action.transfer, account)
         writers.write_action_transfer(w, action.transfer)
@@ -109,7 +110,7 @@ def check_action(action, name, account):
             return False
 
     elif name == "transfer":
-        return True if action.transfer is not None else False
+        return action.transfer is not None
 
     elif action.unknown is not None:
         return True

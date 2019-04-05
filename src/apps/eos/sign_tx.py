@@ -31,10 +31,11 @@ async def sign_tx(ctx, msg: EosSignTx, keychain):
         node.private_key(), digest, True, secp256k1.CANONICAL_SIG_EOS
     )
 
-    resp = EosSignedTx()
-    resp.signature = signature
-
-    return resp
+    return EosSignedTx(
+        signature[0],
+        signature[1:33],
+        signature[33:]
+    )
 
 
 async def _init(ctx, sha, msg):

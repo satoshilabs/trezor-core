@@ -12,9 +12,7 @@ def eos_name_to_string(value) -> str:
         string = c + string
         tmp >>= 4 if i == 0 else 5
 
-    string = string.rstrip(".")
-
-    return string
+    return string.rstrip(".")
 
 
 def eos_asset_to_string(asset: EosAsset) -> str:
@@ -28,21 +26,6 @@ def eos_asset_to_string(asset: EosAsset) -> str:
         return "{}.{} {}".format(integer, fraction, symbol)
     else:
         return "{} {}".format(amount_digits, symbol)
-
-
-def pack_variant32(value: int) -> str:
-    out = bytearray()
-    val = value
-    while True:
-        b = val & 0x7F
-        val >>= 7
-        b |= (val > 0) << 7
-        out.append(b)
-
-        if val == 0:
-            break
-
-    return bytes(out)
 
 
 def validate_full_path(path: list) -> bool:
