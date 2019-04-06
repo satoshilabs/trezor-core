@@ -15,8 +15,8 @@ from trezor.messages import (
     EosAsset,
     EosAuthorization,
     EosTxHeader,
-    HashWriter,
 )
+from trezor.utils import HashWriter
 
 from apps.common.writers import (
     write_bytes,
