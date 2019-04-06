@@ -1,6 +1,6 @@
 from ubinascii import hexlify
 
-from trezor import ui
+from trezor import ui, wire
 from trezor.messages import (
     ButtonRequestType,
     EosActionBuyRam,
@@ -19,7 +19,7 @@ from trezor.messages import (
     MessageType,
 )
 from trezor.messages.ButtonRequest import ButtonRequest
-from trezor.ui.confirm import ConfirmDialog, CONFIRMED
+from trezor.ui.confirm import CONFIRMED, ConfirmDialog
 from trezor.ui.scroll import Scrollpage, animate_swipe, paginate
 from trezor.ui.text import Text
 from trezor.utils import chunks

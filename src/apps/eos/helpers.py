@@ -1,6 +1,6 @@
 from trezor.messages import EosAsset
 
-from apps.common import HARDENED, paths
+from apps.common import HARDENED
 
 
 def eos_name_to_string(value) -> str:

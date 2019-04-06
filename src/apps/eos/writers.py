@@ -1,4 +1,22 @@
-from trezor.messages import EosAsset, EosAuthorization
+from trezor.messages import (
+    EosActionBuyRam,
+    EosActionBuyRamBytes,
+    EosActionCommon,
+    EosActionDelegate,
+    EosActionDeleteAuth,
+    EosActionLinkAuth,
+    EosActionNewAccount,
+    EosActionRefund,
+    EosActionSellRam,
+    EosActionTransfer,
+    EosActionUndelegate,
+    EosActionUpdateAuth,
+    EosActionVoteProducer,
+    EosAsset,
+    EosAuthorization,
+    EosTxHeader,
+    HashWriter,
+)
 
 from apps.common.writers import (
     write_bytes,
@@ -69,7 +87,7 @@ def write_action_delegate(w: bytearray, msg: EosActionDelegate):
     write_asset(w, msg.net_quantity)
     write_asset(w, msg.cpu_quantity)
     write_uint8(w, 1 if msg.transfer else 0)
-    
+
 
 def write_action_undelegate(w: bytearray, msg: EosActionUndelegate):
     write_uint64_le(w, msg.sender)
