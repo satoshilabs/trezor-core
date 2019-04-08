@@ -52,6 +52,8 @@ async def process_action(ctx, sha, action):
         elif name == "newaccount":
             await layout.confirm_action_newaccount(ctx, action.new_account)
             writers.write_action_newaccount(w, action.new_account)
+        else:
+            raise ValueError("Unrecognized action type for eosio")
     elif name == "transfer":
         await layout.confirm_action_transfer(ctx, action.transfer, account)
         writers.write_action_transfer(w, action.transfer)
