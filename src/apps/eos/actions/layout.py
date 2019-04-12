@@ -29,9 +29,12 @@ from apps.eos.get_public_key import _public_key_to_wif
 from apps.eos.layout import require_confirm
 
 _LINE_LENGTH = const(17)
+_LINE_PLACEHOLDER = "{:<" + str(_LINE_LENGTH) + "}"
 _FIRST_PAGE = const(0)
 _TWO_FIELDS_PER_PAGE = const(2)
+_THREE_FIELDS_PER_PAGE = const(3)
 _FOUR_FIELDS_PER_PAGE = const(4)
+_FIVE_FIELDS_PER_PAGE = const(5)
 
 
 async def confirm_action_buyram(ctx, msg: EosActionBuyRam):
