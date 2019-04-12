@@ -1,3 +1,4 @@
+from micropython import const
 from ubinascii import hexlify
 
 from trezor import ui, wire
