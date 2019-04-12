@@ -15,7 +15,12 @@ from apps.eos.layout import require_sign_tx
 
 
 async def sign_tx(ctx, msg: EosSignTx, keychain):
-    check(msg)
+    if msg.chain_id is None:
+        raise wire.DataError("No chain id")
+    if msg.header is None:
+        raise wire.DataError("No header")
+    if msg.num_actions is None or msg.num_actions == 0:
+        raise wire.DataError("No actions")
 
     await paths.validate_path(ctx, validate_full_path, path=msg.address_n)
 
@@ -47,12 +52,3 @@ async def _actions(ctx, sha, num_actions: int):
     for i in range(num_actions):
         action = await ctx.call(EosTxActionRequest(), EosTxActionAck)
         await process_action(ctx, sha, action)
-
-
-def check(msg: EosSignTx):
-    if msg.chain_id is None:
-        raise wire.DataError("No chain id")
-    if msg.header is None:
-        raise wire.DataError("No header")
-    if msg.num_actions == 0:
-        raise wire.DataError("No actions")

@@ -28,13 +28,10 @@ from apps.eos import helpers
 from apps.eos.get_public_key import _public_key_to_wif
 from apps.eos.layout import require_confirm
 
-LINE_LENGTH = 17
-LINE_PLACEHOLDER = "{:<" + str(LINE_LENGTH) + "}"
-FIRST_PAGE = 0
-TWO_FIELDS_PER_PAGE = 2
-THREE_FIELDS_PER_PAGE = 3
-FOUR_FIELDS_PER_PAGE = 4
-FIVE_FIELDS_PER_PAGE = 5
+_LINE_LENGTH = const(17)
+_FIRST_PAGE = const(0)
+_TWO_FIELDS_PER_PAGE = const(2)
+_FOUR_FIELDS_PER_PAGE = const(4)
 
 
 async def confirm_action_buyram(ctx, msg: EosActionBuyRam):
@@ -51,9 +48,9 @@ async def confirm_action_buyram(ctx, msg: EosActionBuyRam):
     fields.append("Amount:")
     fields.append(helpers.eos_asset_to_string(msg.quantity))
 
-    pages = list(chunks(fields, FOUR_FIELDS_PER_PAGE))
+    pages = list(chunks(fields, _FOUR_FIELDS_PER_PAGE))
 
-    paginator = paginate(show_lines_page, len(pages), FIRST_PAGE, pages, text)
+    paginator = paginate(show_lines_page, len(pages), _FIRST_PAGE, pages, text)
     await ctx.wait(paginator)
 
 
@@ -71,8 +68,8 @@ async def confirm_action_buyrambytes(ctx, msg: EosActionBuyRamBytes):
     fields.append("Bytes:")
     fields.append(str(msg.bytes))
 
-    pages = list(chunks(fields, FOUR_FIELDS_PER_PAGE))
-    paginator = paginate(show_lines_page, len(pages), FIRST_PAGE, pages, text)
+    pages = list(chunks(fields, _FOUR_FIELDS_PER_PAGE))
+    paginator = paginate(show_lines_page, len(pages), _FIRST_PAGE, pages, text)
 
     await ctx.wait(paginator)
 
@@ -100,8 +97,8 @@ async def confirm_action_delegate(ctx, msg: EosActionDelegate):
     else:
         fields.append("Transfer: No")
 
-    pages = list(chunks(fields, FOUR_FIELDS_PER_PAGE))
-    paginator = paginate(show_lines_page, len(pages), FIRST_PAGE, pages, text)
+    pages = list(chunks(fields, _FOUR_FIELDS_PER_PAGE))
+    paginator = paginate(show_lines_page, len(pages), _FIRST_PAGE, pages, text)
 
     await ctx.wait(paginator)
 
@@ -118,8 +115,8 @@ async def confirm_action_sellram(ctx, msg: EosActionSellRam):
     fields.append("Bytes:")
     fields.append(str(msg.bytes))
 
-    pages = list(chunks(fields, TWO_FIELDS_PER_PAGE))
-    paginator = paginate(show_lines_page, len(pages), FIRST_PAGE, pages, text)
+    pages = list(chunks(fields, _TWO_FIELDS_PER_PAGE))
+    paginator = paginate(show_lines_page, len(pages), _FIRST_PAGE, pages, text)
 
     await ctx.wait(paginator)
 
@@ -140,8 +137,8 @@ async def confirm_action_undelegate(ctx, msg: EosActionUndelegate):
     fields.append("NET:")
     fields.append(helpers.eos_asset_to_string(msg.net_quantity))
 
-    pages = list(chunks(fields, FOUR_FIELDS_PER_PAGE))
-    paginator = paginate(show_lines_page, len(pages), FIRST_PAGE, pages, text)
+    pages = list(chunks(fields, _FOUR_FIELDS_PER_PAGE))
+    paginator = paginate(show_lines_page, len(pages), _FIRST_PAGE, pages, text)
 
     await ctx.wait(paginator)
 
@@ -169,8 +166,8 @@ async def confirm_action_voteproducer(ctx, msg: EosActionVoteProducer):
             ButtonRequest(code=ButtonRequestType.ConfirmOutput), MessageType.ButtonAck
         )
         producers = list(enumerate(msg.producers))
-        pages = list(chunks(producers, FIVE_FIELDS_PER_PAGE))
-        paginator = paginate(show_voter_page, len(pages), FIRST_PAGE, pages)
+        pages = list(chunks(producers, _FIVE_FIELDS_PER_PAGE))
+        paginator = paginate(show_voter_page, len(pages), _FIRST_PAGE, pages)
         await ctx.wait(paginator)
 
     else:
@@ -181,7 +178,7 @@ async def confirm_action_voteproducer(ctx, msg: EosActionVoteProducer):
         await require_confirm(ctx, text, ButtonRequestType.ConfirmOutput)
 
 
-async def confirm_action_transfer(ctx, msg: EosActionTransfer, account):
+async def confirm_action_transfer(ctx, msg: EosActionTransfer, account: str):
     await ctx.call(
         ButtonRequest(code=ButtonRequestType.ConfirmOutput), MessageType.ButtonAck
     )
@@ -195,15 +192,15 @@ async def confirm_action_transfer(ctx, msg: EosActionTransfer, account):
     fields.append("Amount:")
     fields.append(helpers.eos_asset_to_string(msg.quantity))
     fields.append("Contract:")
-    fields.append("{}".format(account))
+    fields.append(account)
 
     if msg.memo is not None:
         fields.append("Memo:")
         fields += split_data(msg.memo[:512])
 
-    pages = list(chunks(fields, FOUR_FIELDS_PER_PAGE))
+    pages = list(chunks(fields, _FOUR_FIELDS_PER_PAGE))
 
-    paginator = paginate(show_lines_page, len(pages), FIRST_PAGE, pages, text)
+    paginator = paginate(show_lines_page, len(pages), _FIRST_PAGE, pages, text)
     await ctx.wait(paginator)
 
 
@@ -222,9 +219,9 @@ async def confirm_action_updateauth(ctx, msg: EosActionUpdateAuth):
     fields.append(helpers.eos_name_to_string(msg.parent))
     fields += authorization_fields(msg.auth)
 
-    pages = list(chunks(fields, FOUR_FIELDS_PER_PAGE))
+    pages = list(chunks(fields, _FOUR_FIELDS_PER_PAGE))
 
-    paginator = paginate(show_lines_page, len(pages), FIRST_PAGE, pages, text)
+    paginator = paginate(show_lines_page, len(pages), _FIRST_PAGE, pages, text)
     await ctx.wait(paginator)
 
 
@@ -253,8 +250,8 @@ async def confirm_action_linkauth(ctx, msg: EosActionLinkAuth):
     fields.append("Requirement:")
     fields.append(helpers.eos_name_to_string(msg.requirement))
 
-    pages = list(chunks(fields, FOUR_FIELDS_PER_PAGE))
-    paginator = paginate(show_lines_page, len(pages), FIRST_PAGE, pages, text)
+    pages = list(chunks(fields, _FOUR_FIELDS_PER_PAGE))
+    paginator = paginate(show_lines_page, len(pages), _FIRST_PAGE, pages, text)
 
     await ctx.wait(paginator)
 
@@ -273,8 +270,8 @@ async def confirm_action_unlinkauth(ctx, msg: EosActionUnlinkAuth):
     fields.append("Type:")
     fields.append(helpers.eos_name_to_string(msg.type))
 
-    pages = list(chunks(fields, FOUR_FIELDS_PER_PAGE))
-    paginator = paginate(show_lines_page, len(pages), FIRST_PAGE, pages, text)
+    pages = list(chunks(fields, _FOUR_FIELDS_PER_PAGE))
+    paginator = paginate(show_lines_page, len(pages), _FIRST_PAGE, pages, text)
 
     await ctx.wait(paginator)
 
@@ -293,8 +290,8 @@ async def confirm_action_newaccount(ctx, msg: EosActionNewAccount):
     fields += authorization_fields(msg.owner)
     fields += authorization_fields(msg.active)
 
-    pages = list(chunks(fields, FOUR_FIELDS_PER_PAGE))
-    paginator = paginate(show_lines_page, len(pages), FIRST_PAGE, pages, text)
+    pages = list(chunks(fields, _FOUR_FIELDS_PER_PAGE))
+    paginator = paginate(show_lines_page, len(pages), _FIRST_PAGE, pages, text)
 
     await ctx.wait(paginator)
 
@@ -313,8 +310,8 @@ async def confirm_action_unknown(ctx, action, checksum):
     fields.append("Checksum: ")
     fields += split_data(hexlify(checksum).decode("ascii"))
 
-    pages = list(chunks(fields, FIVE_FIELDS_PER_PAGE))
-    paginator = paginate(show_lines_page, len(pages), FIRST_PAGE, pages, text)
+    pages = list(chunks(fields, _FIVE_FIELDS_PER_PAGE))
+    paginator = paginate(show_lines_page, len(pages), _FIRST_PAGE, pages, text)
 
     await ctx.wait(paginator)
 
@@ -404,7 +401,7 @@ def split_data(data):
     temp_list = []
     len_left = len(data)
     while len_left > 0:
-        temp_list.append("{} ".format(data[:LINE_LENGTH]))
-        data = data[LINE_LENGTH:]
+        temp_list.append("{} ".format(data[:_LINE_LENGTH]))
+        data = data[_LINE_LENGTH:]
         len_left = len(data)
     return temp_list
