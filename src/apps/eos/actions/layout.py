@@ -323,9 +323,9 @@ async def confirm_action_unknown(ctx, action, checksum):
 @ui.layout
 async def show_lines_page(page: int, page_count: int, pages: list, header: str):
     if header == "Arbitrary data":
-        text = Text("{} !!!".format(header), ui.ICON_WIPE, icon_color=ui.RED)
+        text = Text(header, ui.ICON_WIPE, icon_color=ui.RED)
     else:
-        text = Text("{}".format(header), ui.ICON_CONFIRM, icon_color=ui.GREEN)
+        text = Text(header, ui.ICON_CONFIRM, icon_color=ui.GREEN)
     text.mono(*pages[page])
 
     content = Scrollpage(text, page, page_count)
